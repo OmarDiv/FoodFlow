@@ -1,0 +1,11 @@
+﻿global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.EntityFrameworkCore;
+global using FluentValidation.AspNetCore;
+global using System.Reflection;
+global using FoodFlow.Entities;
+global using FoodFlow.Interface;
+global using FoodFlow.Persistence;
+global using FoodFlow.Contracts.Restaurants.Dtos;
+global using Mapster;
+global using System.Linq;
+global using System.Collections.Generic;

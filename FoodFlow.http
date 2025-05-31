@@ -1,6 +1,0 @@
-@FoodFlow_HostAddress = http://localhost:5277
-
-GET {{FoodFlow_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
