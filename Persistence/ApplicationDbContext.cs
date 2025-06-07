@@ -1,6 +1,8 @@
-﻿namespace FoodFlow.Persistence
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+
+namespace FoodFlow.Persistence
 {
-    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<Restaurant> Restaurants { get; set; } = null!;
 

@@ -1,34 +1,29 @@
-﻿using FluentValidation;
-using FoodFlow.Contracts.Restaurants.Dtos;
-
-namespace FoodFlow.Contracts.Restaurants.Vaildations
+﻿namespace FoodFlow.Contracts.Restaurants.Vaildations
 {
-    public class CreateRestaurantVaildator : AbstractValidator<CreateRestaurantRequest>
+    public class LoginRequestValidator : AbstractValidator<CreateRestaurantRequest>
     {
-        public CreateRestaurantVaildator()
+        public LoginRequestValidator()
         {
 
             RuleFor(x => x.Name)
-                  .NotEmpty().WithMessage("{PropertyName} name is required")
-                  .MaximumLength(100).WithMessage("{PropertyName} name must not exceed 100 characters");
+                  .NotEmpty().WithMessage("{PropertyName} is required")
+                  .MaximumLength(100).WithMessage("{PropertyName} must not be longer than 100 characters.");
 
             RuleFor(x => x.Description)
-                  .MaximumLength(500).WithMessage("{PropertyName} must not exceed 500 characters")
-                  .When(x => x.Description != null);
+                  .MaximumLength(500).WithMessage("{PropertyName} must not be longer than 500 characters.")
+                  .When(x => x.Description is not null);
+            RuleFor(x => x.LogoUrl)
+                 .MaximumLength(300).WithMessage("{PropertyName} must not be longer than 300 characters.")
+                 .WithMessage("{PropertyName} is required");
 
             RuleFor(x => x.Address)
                   .NotEmpty().WithMessage("{PropertyName} is required")
-                  .MaximumLength(200).WithMessage("{PropertyName} must not exceed 200 characters");
+                  .MaximumLength(200).WithMessage("{PropertyName} must not be longer than 200 characters.");
 
             RuleFor(x => x.PhoneNumber)
                   .NotEmpty()
-                  .WithMessage("{PropertyName} number is required");
-                  
-
-            RuleFor(x => x.LogoUrl)
-                  .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
-                  .WithMessage("Invalid image URL format")
-                  .When(x => x.LogoUrl != null);
+                  .WithMessage("{PropertyName} is required")
+                  .MaximumLength(20).WithMessage("{PropertyName} must not be longer than 20 characters.");
         }
 
 

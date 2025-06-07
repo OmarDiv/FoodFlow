@@ -1,23 +1,32 @@
-﻿using FluentValidation;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 namespace FoodFlow
 {
     public static class DependancyInjection
     {
 
-        public static IServiceCollection RegisterDependancies(this IServiceCollection services,WebApplicationBuilder builder)
+        public static IServiceCollection RegisterDependancies(this IServiceCollection services, WebApplicationBuilder builder)
         {
 
             services.AddControllers();
 
             services
-                .AddSwagerServices()
+                .AddAuthConfig()
+                .AddSwagerConfig()
                 .AddMapsterConfig()
-                .AddFluentValidtions()
+                .AddFluentValidtionsConfig()
                 .DbContextConfig(builder);
+
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IJwtProvider, JwtProvider>();
+            services.AddScoped<IRestaurantService, RestaurantServicec>();
+
             return services;
         }
 
-        public static IServiceCollection DbContextConfig(this IServiceCollection services, WebApplicationBuilder builder)
+        private static IServiceCollection DbContextConfig(this IServiceCollection services, WebApplicationBuilder builder)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -30,17 +39,17 @@ namespace FoodFlow
             return services;
         }
 
-        public static IServiceCollection AddSwagerServices(this IServiceCollection services)
+        private static IServiceCollection AddSwagerConfig(this IServiceCollection services)
         {
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-           services.AddEndpointsApiExplorer();
-           services.AddSwaggerGen();
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
 
             return services;
         }
 
 
-        public static IServiceCollection AddMapsterConfig(this IServiceCollection services)
+        private static IServiceCollection AddMapsterConfig(this IServiceCollection services)
         {
             var config = TypeAdapterConfig.GlobalSettings;
             config.Scan(Assembly.GetExecutingAssembly());
@@ -49,13 +58,42 @@ namespace FoodFlow
             return services;
         }
 
-        public static IServiceCollection AddFluentValidtions(this IServiceCollection services)
+        private static IServiceCollection AddFluentValidtionsConfig(this IServiceCollection services)
         {
-           services.AddFluentValidationAutoValidation()
-                .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+            services.AddFluentValidationAutoValidation()
+                 .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
             return services;
         }
+
+        private static IServiceCollection AddAuthConfig(this IServiceCollection services)
+        {
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("LlohKI6zKQojsQVBDUc6XVGPfiTga84R")), // Replace with your actual key
+                    ValidIssuer = "FoodFlowApp",
+                    ValidAudience = "FoodFlow Users"
+                };
+            });
+
+            return services;
+        }
+
 
 
 

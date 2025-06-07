@@ -1,7 +1,4 @@
 using FoodFlow;
-using FoodFlow.Persistence;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

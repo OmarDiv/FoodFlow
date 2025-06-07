@@ -3,10 +3,10 @@
     public record RestaurantDetailsResponse(
     int Id,
     string Name,
-    string Description,
+    string? Description,
     string PhoneNumber,
     string Address,
-    string LogoUrl,
+    string? LogoUrl,
     bool IsOpen);
 }
 

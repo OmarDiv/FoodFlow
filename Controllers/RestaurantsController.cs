@@ -1,4 +1,5 @@
-﻿using FoodFlow.Contracts.Restaurants.Dtos;
+﻿using Microsoft.AspNetCore.Authorization;
+
 namespace FoodFlow.Controllers
 {
     [Route("api/[controller]")]
@@ -8,17 +9,18 @@ namespace FoodFlow.Controllers
         public readonly IRestaurantService _restaurantService = restaurantService;
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [Authorize]
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var restaurants = await _restaurantService.GetAllRestaurantsAsync();
-           
+
             return Ok(restaurants);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
         {
-            var restaurant = await _restaurantService.GetRestaurntByIdAsync(id);
+            var restaurant = await _restaurantService.GetRestaurantByIdAsync(id);
 
             if (restaurant is null)
                 return NotFound();
@@ -28,21 +30,21 @@ namespace FoodFlow.Controllers
         }
 
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateRestaurantRequest request)
+        [HttpPost()]
+        public async Task<IActionResult> Create([FromBody] CreateRestaurantRequest request, CancellationToken cancellationToken)
         {
-            
-            var Data = await _restaurantService.CreateRestaurantAsync(request);
-            if(Data is null)
+
+            var item = await _restaurantService.CreateRestaurantAsync(request, cancellationToken);
+            if (item is null)
                 return BadRequest();
 
-            return CreatedAtAction(nameof(GetById),Data.Id,Data);
+            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateRestaurantRequest request) 
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateRestaurantRequest request, CancellationToken cancellationToken = default)
         {
-            var restaurant = await _restaurantService.UpdateRestaurantAsync(id, request);
+            var restaurant = await _restaurantService.UpdateRestaurantAsync(id, request, cancellationToken);
             if (!restaurant)
                 return NotFound("Restaurant no exsist");
 
@@ -51,11 +53,31 @@ namespace FoodFlow.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
         {
-            var deleted = await _restaurantService.DeleteRestaurantAsync(id);
+            var deleted = await _restaurantService.DeleteRestaurantAsync(id, cancellationToken);
             if (!deleted)
                 return NotFound();
+
+            return NoContent();
+        }
+        [HttpPut("{id}/toggle-open")]
+        public async Task<IActionResult> ToggleOpenStatus(int id, CancellationToken cancellationToken = default)
+        {
+            var restaurant = await _restaurantService.ToggleOpenStatusAsync(id, cancellationToken);
+            if (!restaurant)
+                return NotFound("Restaurant no exsist");
+
+
+            return NoContent();
+        }
+        [HttpPut("{id}/toggle-active")]
+        public async Task<IActionResult> ToggleActiveStatus(int id, CancellationToken cancellationToken = default)
+        {
+            var restaurant = await _restaurantService.ToggleActiveStatusAsync(id, cancellationToken);
+            if (!restaurant)
+                return NotFound("Restaurant no exsist");
+
 
             return NoContent();
         }

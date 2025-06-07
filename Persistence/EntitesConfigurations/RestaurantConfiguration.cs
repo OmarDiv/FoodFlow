@@ -6,20 +6,27 @@ namespace FoodFlow.Persistence.EntitesConfigurations
     {
         public void Configure(EntityTypeBuilder<Restaurant> builder)
         {
+            builder.HasIndex(r => r.PhoneNumber).IsUnique();
+
+
             builder.Property(r => r.Name)
                 .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(r => r.Description)
-                .HasMaxLength(500);
+            builder.Property(r => r.PhoneNumber)
+                .IsRequired()
+                .HasMaxLength(20);
+
 
             builder.Property(r => r.Address)
                 .IsRequired()
                 .HasMaxLength(200);
 
-            builder.Property(r => r.PhoneNumber)
-                .IsRequired()
-                .HasMaxLength(15);
+            builder.Property(r => r.LogoUrl)
+                .HasMaxLength(300);
+
+            builder.Property(r => r.Description)
+                .HasMaxLength(500);
 
             // Relationships
             //builder.HasOne(r => r.Owner)
@@ -28,7 +35,7 @@ namespace FoodFlow.Persistence.EntitesConfigurations
             //    .OnDelete(DeleteBehavior.Restrict);
 
             // Unique constraints
-
         }
+
     }
 }

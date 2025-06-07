@@ -3,7 +3,7 @@
     public record UpdateRestaurantRequest(
      string Name,
      string? Description,
-     int PhoneNumber,
+     string PhoneNumber,
      string Address,
      string? LogoUrl,
      bool IsOpen);
