@@ -1,6 +1,6 @@
-﻿namespace FoodFlow.Contracts.MenuItems.Dtos
+﻿namespace FoodFlow.Contracts.Restaurants
 {
-    public record UpdateMenuItemRequest(
+    public record RestaurantListResponse(
      int Id,
      string Name,
      string Description,

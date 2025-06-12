@@ -3,7 +3,7 @@ using FoodFlow;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.RegisterDependancies(builder);
+builder.Services.RegisterDependancies(builder.Configuration);
 
 var app = builder.Build();
 

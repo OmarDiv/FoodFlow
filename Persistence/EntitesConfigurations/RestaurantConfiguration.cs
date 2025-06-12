@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FoodFlow.Persistence.EntitesConfigurations
 {
@@ -7,7 +8,7 @@ namespace FoodFlow.Persistence.EntitesConfigurations
         public void Configure(EntityTypeBuilder<Restaurant> builder)
         {
             builder.HasIndex(r => r.PhoneNumber).IsUnique();
-
+            builder.HasIndex(r => new { r.Name, r.Address }).IsUnique();
 
             builder.Property(r => r.Name)
                 .IsRequired()
@@ -16,7 +17,6 @@ namespace FoodFlow.Persistence.EntitesConfigurations
             builder.Property(r => r.PhoneNumber)
                 .IsRequired()
                 .HasMaxLength(20);
-
 
             builder.Property(r => r.Address)
                 .IsRequired()
@@ -27,15 +27,6 @@ namespace FoodFlow.Persistence.EntitesConfigurations
 
             builder.Property(r => r.Description)
                 .HasMaxLength(500);
-
-            // Relationships
-            //builder.HasOne(r => r.Owner)
-            //    .WithMany(u => u.Restaurants)
-            //    .HasForeignKey(r => r.OwnerId)
-            //    .OnDelete(DeleteBehavior.Restrict);
-
-            // Unique constraints
         }
-
     }
 }

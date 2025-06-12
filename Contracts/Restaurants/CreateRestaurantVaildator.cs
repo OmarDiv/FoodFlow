@@ -1,8 +1,8 @@
-﻿namespace FoodFlow.Contracts.Restaurants.Vaildations
+﻿namespace FoodFlow.Contracts.Restaurants
 {
-    public class LoginRequestValidator : AbstractValidator<CreateRestaurantRequest>
+    public class CreateRestaurantRequestValidator : AbstractValidator<CreateRestaurantRequest>
     {
-        public LoginRequestValidator()
+        public CreateRestaurantRequestValidator()
         {
 
             RuleFor(x => x.Name)

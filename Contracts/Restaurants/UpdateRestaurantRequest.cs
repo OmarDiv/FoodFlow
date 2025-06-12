@@ -1,4 +1,4 @@
-﻿namespace FoodFlow.Contracts.Restaurants.Dtos
+﻿namespace FoodFlow.Contracts.Restaurants
 {
     public record UpdateRestaurantRequest(
      string Name,

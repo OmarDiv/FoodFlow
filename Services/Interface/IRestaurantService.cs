@@ -1,4 +1,6 @@
-﻿namespace FoodFlow.Interface
+﻿using FoodFlow.Contracts.Restaurants;
+
+namespace FoodFlow.Interface
 {
     public interface IRestaurantService
     {

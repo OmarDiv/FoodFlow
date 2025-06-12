@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>4ff12109-a11f-4822-b559-0290c37bfc9d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,10 +23,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Const\Enum\" />
   </ItemGroup>
 
   <ItemGroup>

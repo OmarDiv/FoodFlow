@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FoodFlow.Contracts.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -7,31 +8,32 @@ namespace FoodFlow
     public static class DependancyInjection
     {
 
-        public static IServiceCollection RegisterDependancies(this IServiceCollection services, WebApplicationBuilder builder)
+        public static IServiceCollection RegisterDependancies(this IServiceCollection services, IConfiguration configuration)
         {
 
             services.AddControllers();
 
             services
-                .AddAuthConfig()
+                .AddAuthConfig(configuration)
                 .AddSwagerConfig()
                 .AddMapsterConfig()
                 .AddFluentValidtionsConfig()
-                .DbContextConfig(builder);
+                .DbContextConfig(configuration);
 
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.AddScoped<IRestaurantService, RestaurantServicec>();
 
             return services;
         }
 
-        private static IServiceCollection DbContextConfig(this IServiceCollection services, WebApplicationBuilder builder)
+        private static IServiceCollection DbContextConfig(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                   configuration.GetConnectionString("DefaultConnection"),
                     sqlOptions => sqlOptions.EnableRetryOnFailure()
                 );
             });
@@ -66,10 +68,14 @@ namespace FoodFlow
             return services;
         }
 
-        private static IServiceCollection AddAuthConfig(this IServiceCollection services)
+        private static IServiceCollection AddAuthConfig(this IServiceCollection services,IConfiguration configuration)
         {
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName)); //السطر ده هوه المسؤول عن عمليه ال DI 
+
+            var setting =configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>(); //بعمل bind بين ال appsettings و ال JwtOptions
 
             services.AddAuthentication(options =>
             {
@@ -85,17 +91,14 @@ namespace FoodFlow
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("LlohKI6zKQojsQVBDUc6XVGPfiTga84R")), // Replace with your actual key
-                    ValidIssuer = "FoodFlowApp",
-                    ValidAudience = "FoodFlow Users"
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:key"]!)), 
+                    ValidIssuer = setting?.Issuer,
+                    ValidAudience = setting?.Audience,
                 };
             });
 
             return services;
         }
-
-
-
 
     }
 }

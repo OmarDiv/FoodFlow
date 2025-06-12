@@ -1,11 +1,15 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using FoodFlow.Contracts.Authentication;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 namespace FoodFlow.Services.Impelement
 {
-    public class JwtProvider : IJwtProvider
+    public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     {
+        private readonly JwtOptions _options = options.Value;
+
         public (string token, int expirationIn) GenerateToken(ApplicationUser user)
         {
             Claim[] claims = new Claim[]
@@ -18,14 +22,14 @@ namespace FoodFlow.Services.Impelement
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), 
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("LlohKI6zKQojsQVBDUc6XVGPfiTga84R")); 
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key)); 
 
             var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var expirationIn = 30; // Token expiration time
+            var expirationIn =_options.ExpirationInMinutes; // Token expiration time
             var token = new JwtSecurityToken(
-                issuer: "FoodFlowApp", // Issuer
-                audience: "FoodFlow Users", // Audience
+                issuer: _options.Issuer, // Issuer
+                audience: _options.Audience, // Audience
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(expirationIn),
                 signingCredentials: signingCredentials

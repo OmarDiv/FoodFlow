@@ -1,7 +1,6 @@
-﻿namespace FoodFlow.Contracts.Restaurants.Dtos
+﻿namespace FoodFlow.Contracts.Restaurants
 {
-    public record RestaurantDetailsResponse(
-    int Id,
+    public record CreateRestaurantRequest(
     string Name,
     string? Description,
     string PhoneNumber,
@@ -9,4 +8,3 @@
     string? LogoUrl,
     bool IsOpen);
 }
-

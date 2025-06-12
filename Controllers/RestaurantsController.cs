@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-
+﻿
 namespace FoodFlow.Controllers
 {
     [Route("api/[controller]")]
@@ -38,7 +37,7 @@ namespace FoodFlow.Controllers
             if (item is null)
                 return BadRequest();
 
-            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+            return CreatedAtAction(nameof(GetById), new { id = item.Id },item);
         }
 
         [HttpPut("{id}")]
@@ -66,7 +65,7 @@ namespace FoodFlow.Controllers
         {
             var restaurant = await _restaurantService.ToggleOpenStatusAsync(id, cancellationToken);
             if (!restaurant)
-                return NotFound("Restaurant no exsist");
+                return NotFound("Restaurant not exsist");
 
 
             return NoContent();
@@ -76,7 +75,7 @@ namespace FoodFlow.Controllers
         {
             var restaurant = await _restaurantService.ToggleActiveStatusAsync(id, cancellationToken);
             if (!restaurant)
-                return NotFound("Restaurant no exsist");
+                return NotFound("Restaurant not exsist");
 
 
             return NoContent();

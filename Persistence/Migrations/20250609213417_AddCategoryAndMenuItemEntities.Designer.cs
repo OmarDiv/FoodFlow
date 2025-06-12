@@ -4,6 +4,7 @@ using FoodFlow.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodFlow.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250609213417_AddCategoryAndMenuItemEntities")]
+    partial class AddCategoryAndMenuItemEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,9 +120,6 @@ namespace FoodFlow.Persistence.Migrations
 
                     b.HasIndex("RestaurantId");
 
-                    b.HasIndex("Name", "RestaurantId")
-                        .IsUnique();
-
                     b.ToTable("Categories");
                 });
 
@@ -136,13 +136,11 @@ namespace FoodFlow.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
@@ -159,9 +157,6 @@ namespace FoodFlow.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("Name", "CategoryId")
-                        .IsUnique();
 
                     b.ToTable("MenuItems");
                 });
@@ -212,9 +207,6 @@ namespace FoodFlow.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PhoneNumber")
-                        .IsUnique();
-
-                    b.HasIndex("Name", "Address")
                         .IsUnique();
 
                     b.ToTable("Restaurants");
@@ -356,7 +348,7 @@ namespace FoodFlow.Persistence.Migrations
             modelBuilder.Entity("FoodFlow.Entities.Category", b =>
                 {
                     b.HasOne("FoodFlow.Entities.Restaurant", "Restaurant")
-                        .WithMany("Categories")
+                        .WithMany("Catgories")
                         .HasForeignKey("RestaurantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -433,7 +425,7 @@ namespace FoodFlow.Persistence.Migrations
 
             modelBuilder.Entity("FoodFlow.Entities.Restaurant", b =>
                 {
-                    b.Navigation("Categories");
+                    b.Navigation("Catgories");
                 });
 #pragma warning restore 612, 618
         }

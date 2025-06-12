@@ -1,4 +1,6 @@
-﻿namespace FoodFlow.Services.Impelement
+﻿using FoodFlow.Contracts.Restaurants;
+
+namespace FoodFlow.Services.Impelement
 {
     public class RestaurantServicec(ApplicationDbContext DbContext) : IRestaurantService
     {

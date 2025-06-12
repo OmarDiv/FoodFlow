@@ -10,7 +10,7 @@
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
                 return null;
-            var ( token,  expirationIn)=  jwtProvider.GenerateToken(user);
+            var ( token,  expirationIn)= _jwtProvider.GenerateToken(user);
 
 
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
