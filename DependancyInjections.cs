@@ -21,8 +21,9 @@ namespace FoodFlow
                 .DbContextConfig(configuration);
 
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IJwtProvider, JwtProvider>();
+            services.AddScoped<IMenuItemService, MenuItemService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IRestaurantService, RestaurantServicec>();
 
             return services;

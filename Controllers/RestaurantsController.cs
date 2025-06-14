@@ -8,7 +8,7 @@ namespace FoodFlow.Controllers
         public readonly IRestaurantService _restaurantService = restaurantService;
 
         [HttpGet]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var restaurants = await _restaurantService.GetAllRestaurantsAsync();

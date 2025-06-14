@@ -4,11 +4,11 @@ namespace FoodFlow.Services.Interface
 {
     public interface IMenuItemService
     {
-        Task<List<MenuItemResponse>> GetAllMenuItemsAsync(int restaurantId, CancellationToken cancellationToken = default); //عرض كل الأصناف لمطعم.
-        Task<MenuItemResponse?> GetMenuItemByIdAsync(int id, CancellationToken cancellationToken = default);// عرض صنف معين من الأصناف.
-        Task<MenuItemResponse> CreateMenuItemAsync(CreateMenuItemRequest request, CancellationToken cancellationToken = default); //إضافة صنف جديد.
-        Task<bool> UpdateMenuItemAsync(int id, UpdateMenuItemRequest request, CancellationToken cancellationToken = default); //تحديث صنف موجود.
-        Task<bool> DeleteMenuItemAsync(int id, CancellationToken cancellationToken = default); //حذف صنف موجود.
-        Task<bool> ToggleAvailabilityAsync(int id, CancellationToken cancellationToken = default); //تغيير حالة توفر الصنف (متاح/غير متاح).
+        Task<IEnumerable<MenuItemResponse>> GetAllItemsAsync(int restaurantId, int categoryId, CancellationToken cancellationToken = default);
+        Task<MenuItemResponse?> GetItemByIdAsync(int restaurantId, int categoryId, int itemId, CancellationToken cancellationToken = default);
+        Task<MenuItemResponse?> CreateItemAsync(int restaurantId, int categoryId, CreateMenuItemRequest request, CancellationToken cancellationToken = default);
+        Task<bool> UpdateItemAsync(int restaurantId, int categoryId, int itemId, UpdateMenuItemRequest request, CancellationToken cancellationToken = default);
+        Task<bool> DeleteItemAsync(int restaurantId, int categoryId, int itemId, CancellationToken cancellationToken = default);
+        Task<bool> ToggleAvaliableItemAsync(int restaurantId, int categoryId, int itemId, CancellationToken cancellationToken = default);
     }
 }

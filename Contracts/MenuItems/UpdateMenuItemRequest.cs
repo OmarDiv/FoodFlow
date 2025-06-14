@@ -5,6 +5,5 @@
      string Description,
      int Price,
      string ImageUrl,
-     bool IsAvailable,
-     int CategoryId);
+     bool IsAvailable);
 }

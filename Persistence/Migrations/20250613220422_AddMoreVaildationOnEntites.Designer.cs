@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodFlow.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250610225445_AddMoreVaildationOnEntites")]
+    [Migration("20250613220422_AddMoreVaildationOnEntites")]
     partial class AddMoreVaildationOnEntites
     {
         /// <inheritdoc />

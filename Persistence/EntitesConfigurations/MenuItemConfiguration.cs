@@ -8,7 +8,6 @@ namespace FoodFlow.Persistence.EntitesConfigurations
         public void Configure(EntityTypeBuilder<MenuItem> builder)
         {
             builder.HasIndex(m => new { m.Name, m.CategoryId }).IsUnique();
-
             builder.Property(m => m.Name)
                 .IsRequired()
                 .HasMaxLength(100);
