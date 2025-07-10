@@ -3,10 +3,22 @@
     public class OrderItem
     {
         public int Id { get; set; }
-        public int Quantity { get; set; }       // الكمية (مثلاً: 2 برجر)
-        public decimal Price { get; set; }      // سعر الوحدة وقت الطلب
 
-        public Order Order { get; set; } = null!; // الطلب اللي ينتمي له هذا العنصر
-        public MenuItem MenuItem { get; set; } = null!; // الطبق الذي تم طلبه
+        // الطلب الرئيسي
+        public int OrderId { get; set; }
+
+        // عنصر الطعام
+        public int MenuItemId { get; set; }
+
+        // الكمية المطلوبة
+        public int Quantity { get; set; }
+
+        // السعر وقت الطلب (ممكن يتغير بعدين في المنيو)
+        public decimal UnitPrice { get; set; }
+
+        // إجمالي السعر لهذا العنصر (UnitPrice * Quantity)
+        public decimal TotalPrice => UnitPrice * Quantity;
+        public MenuItem MenuItem { get; set; } = null!;
+        public Order Order { get; set; } = null!;
     }
 }

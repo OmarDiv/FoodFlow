@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Const\Error\UserErrors.cs" />
     <None Include="Persistence\EntitesConfigurations\UserConfiguration.cs" />
   </ItemGroup>
 

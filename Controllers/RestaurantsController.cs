@@ -11,74 +11,67 @@ namespace FoodFlow.Controllers
         //[Authorize]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
-            var restaurants = await _restaurantService.GetAllRestaurantsAsync();
+            var result = await _restaurantService.GetAllRestaurantsAsync(cancellationToken);
 
-            return Ok(restaurants);
+            return result.IsSuccess
+                 ? Ok(result.Value)
+                : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
         {
-            var restaurant = await _restaurantService.GetRestaurantByIdAsync(id);
-
-            if (restaurant is null)
-                return NotFound();
-
-            var result = restaurant.Adapt<RestaurantListResponse>();
-            return Ok(result);
+            var result = await _restaurantService.GetRestaurantByIdAsync(id);
+            return result.IsSuccess
+                 ? Ok(result.Value)
+                : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
         }
 
 
-        [HttpPost()]
+        [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRestaurantRequest request, CancellationToken cancellationToken)
         {
 
-            var item = await _restaurantService.CreateRestaurantAsync(request, cancellationToken);
-            if (item is null)
-                return BadRequest();
+            var result = await _restaurantService.CreateRestaurantAsync(request, cancellationToken);
 
-            return CreatedAtAction(nameof(GetById), new { id = item.Id },item);
+            return result.IsSuccess
+                ? CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value)
+                : result.ToProblem(statusCode: StatusCodes.Status409Conflict);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateRestaurantRequest request, CancellationToken cancellationToken = default)
         {
-            var restaurant = await _restaurantService.UpdateRestaurantAsync(id, request, cancellationToken);
-            if (!restaurant)
-                return NotFound("Restaurant no exsist");
-
-
-            return NoContent();
+            var result = await _restaurantService.UpdateRestaurantAsync(id, request, cancellationToken);
+            return result.IsSuccess
+                ? NoContent()
+                : result.ToProblem(statusCode: StatusCodes.Status409Conflict);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
         {
-            var deleted = await _restaurantService.DeleteRestaurantAsync(id, cancellationToken);
-            if (!deleted)
-                return NotFound();
+            var result = await _restaurantService.DeleteRestaurantAsync(id, cancellationToken);
 
-            return NoContent();
+            return result.IsSuccess
+                ? NoContent()
+                : result.ToProblem(statusCode: StatusCodes.Status400BadRequest);
         }
         [HttpPut("{id}/toggle-open")]
         public async Task<IActionResult> ToggleOpenStatus(int id, CancellationToken cancellationToken = default)
         {
-            var restaurant = await _restaurantService.ToggleOpenStatusAsync(id, cancellationToken);
-            if (!restaurant)
-                return NotFound("Restaurant not exsist");
-
-
-            return NoContent();
+            var result = await _restaurantService.ToggleOpenStatusAsync(id, cancellationToken);
+            return result.IsSuccess
+                ? NoContent()
+                : result.ToProblem(statusCode: StatusCodes.Status400BadRequest);
         }
         [HttpPut("{id}/toggle-active")]
         public async Task<IActionResult> ToggleActiveStatus(int id, CancellationToken cancellationToken = default)
         {
-            var restaurant = await _restaurantService.ToggleActiveStatusAsync(id, cancellationToken);
-            if (!restaurant)
-                return NotFound("Restaurant not exsist");
-
-
-            return NoContent();
+            var result = await _restaurantService.ToggleActiveStatusAsync(id, cancellationToken);
+            return result.IsSuccess
+               ? NoContent()
+               : result.ToProblem(statusCode: StatusCodes.Status400BadRequest);
         }
 
     }

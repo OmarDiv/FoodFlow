@@ -14,5 +14,8 @@ global using FoodFlow.Services.Impelement;
 global using FoodFlow.Contracts.Restaurants;
 global using FoodFlow.Services.Interface;
 global using FoodFlow.Contracts.MenuItems;
+global using FoodFlow.Abstractions;
+global using FoodFlow.Const;
+
 
 

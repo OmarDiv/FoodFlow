@@ -36,5 +36,36 @@ namespace FoodFlow.Services.Impelement
             );
             return (token : new JwtSecurityTokenHandler().WriteToken(token),expirationIn: expirationIn * 60);
         }
+
+        public string? ValidateToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var SymmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
+
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    IssuerSigningKey = SymmetricSecurityKey,
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero // No clock skew
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+
+                return jwtToken.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value;
+
+            }
+            catch 
+            {
+                return null;
+            }
+
+
+
+
+        }
     }
 }
