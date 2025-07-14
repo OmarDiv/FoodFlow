@@ -127,7 +127,7 @@ This project is licensed under MIT.
 ## Contact
 
 - **GitHub:** [OmarDiv](https://github.com/OmarDiv)
-- **Email:** [your-email@example.com]
+- **Email:** [Omaar88mohamed@example.com]
 
 ---
 
