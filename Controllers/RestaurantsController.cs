@@ -15,7 +15,16 @@ namespace FoodFlow.Controllers
 
             return result.IsSuccess
                  ? Ok(result.Value)
-                : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
+                : result.ToProblem();
+        }
+        [HttpGet("active")]
+        public async Task<IActionResult> GetActive(CancellationToken cancellationToken)
+        {
+            var result = await _restaurantService.GetAllRestaurantsAsync(cancellationToken);
+
+            return result.IsSuccess
+                 ? Ok(result.Value)
+                : result.ToProblem();
         }
 
         [HttpGet("{id}")]
@@ -24,7 +33,7 @@ namespace FoodFlow.Controllers
             var result = await _restaurantService.GetRestaurantByIdAsync(id);
             return result.IsSuccess
                  ? Ok(result.Value)
-                : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
+                : result.ToProblem();
         }
 
 
@@ -36,7 +45,7 @@ namespace FoodFlow.Controllers
 
             return result.IsSuccess
                 ? CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value)
-                : result.ToProblem(statusCode: StatusCodes.Status409Conflict);
+                : result.ToProblem();
         }
 
         [HttpPut("{id}")]
@@ -45,7 +54,7 @@ namespace FoodFlow.Controllers
             var result = await _restaurantService.UpdateRestaurantAsync(id, request, cancellationToken);
             return result.IsSuccess
                 ? NoContent()
-                : result.ToProblem(statusCode: StatusCodes.Status409Conflict);
+                : result.ToProblem();
         }
 
         [HttpDelete("{id}")]
@@ -55,7 +64,7 @@ namespace FoodFlow.Controllers
 
             return result.IsSuccess
                 ? NoContent()
-                : result.ToProblem(statusCode: StatusCodes.Status400BadRequest);
+                : result.ToProblem();
         }
         [HttpPut("{id}/toggle-open")]
         public async Task<IActionResult> ToggleOpenStatus(int id, CancellationToken cancellationToken = default)
@@ -63,7 +72,7 @@ namespace FoodFlow.Controllers
             var result = await _restaurantService.ToggleOpenStatusAsync(id, cancellationToken);
             return result.IsSuccess
                 ? NoContent()
-                : result.ToProblem(statusCode: StatusCodes.Status400BadRequest);
+                : result.ToProblem();
         }
         [HttpPut("{id}/toggle-active")]
         public async Task<IActionResult> ToggleActiveStatus(int id, CancellationToken cancellationToken = default)
@@ -71,7 +80,7 @@ namespace FoodFlow.Controllers
             var result = await _restaurantService.ToggleActiveStatusAsync(id, cancellationToken);
             return result.IsSuccess
                ? NoContent()
-               : result.ToProblem(statusCode: StatusCodes.Status400BadRequest);
+               : result.ToProblem();
         }
 
     }

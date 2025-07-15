@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-
-namespace FoodFlow.Contracts.Categories
+﻿namespace FoodFlow.Contracts.Categories
 {
     public class UpdateCategoryValidator : AbstractValidator<UpdateCategoryRequest>
     {

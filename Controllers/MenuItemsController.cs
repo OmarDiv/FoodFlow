@@ -10,7 +10,7 @@ public class MenuItemsController(IMenuItemService menuItemService) : ControllerB
         var result = await _menuItemService.GetAllItemsAsync(restaurantId, categoryId, cancellationToken);
         return result.IsSuccess
             ? Ok(result.Value)
-            : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
+            : result.ToProblem();
     }
 
     [HttpGet("{itemId}")]
@@ -19,7 +19,7 @@ public class MenuItemsController(IMenuItemService menuItemService) : ControllerB
         var result = await _menuItemService.GetItemByIdAsync(restaurantId, categoryId, itemId, cancellationToken);
         return result.IsSuccess
             ? Ok(result.Value)
-            : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
+            : result.ToProblem();
     }
 
     [HttpPost]
@@ -28,7 +28,7 @@ public class MenuItemsController(IMenuItemService menuItemService) : ControllerB
         var result = await _menuItemService.CreateItemAsync(restaurantId, categoryId, request, cancellationToken);
         return result.IsSuccess
             ? CreatedAtAction(nameof(GetById), new { restaurantId, categoryId, itemId = result.Value!.Id }, result.Value)
-            : result.ToProblem(statusCode: StatusCodes.Status400BadRequest);
+            : result.ToProblem();
     }
 
     [HttpPut("{itemId}")]
@@ -37,7 +37,7 @@ public class MenuItemsController(IMenuItemService menuItemService) : ControllerB
         var result = await _menuItemService.UpdateItemAsync(restaurantId, categoryId, itemId, request, cancellationToken);
         return result.IsSuccess
             ? NoContent()
-            : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
+            : result.ToProblem();
     }
 
     [HttpDelete("{itemId}")]
@@ -46,7 +46,7 @@ public class MenuItemsController(IMenuItemService menuItemService) : ControllerB
         var result = await _menuItemService.DeleteItemAsync(restaurantId, categoryId, itemId, cancellationToken);
         return result.IsSuccess
             ? NoContent()
-            : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
+            : result.ToProblem();
     }
 
     [HttpPut("{itemId}/toggle-available")]
@@ -55,6 +55,6 @@ public class MenuItemsController(IMenuItemService menuItemService) : ControllerB
         var result = await _menuItemService.ToggleAvaliableItemAsync(restaurantId, categoryId, itemId, cancellationToken);
         return result.IsSuccess
             ? NoContent()
-            : result.ToProblem(statusCode: StatusCodes.Status404NotFound);
+            : result.ToProblem();
     }
 }

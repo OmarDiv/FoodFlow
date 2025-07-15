@@ -1,5 +1,4 @@
-﻿using FoodFlow.Const.Error;
-using FoodFlow.Contracts.Authentication;
+﻿using FoodFlow.Contracts.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -50,7 +49,7 @@ namespace FoodFlow
                    configuration.GetConnectionString("DefaultConnection"),
                     sqlOptions => sqlOptions.EnableRetryOnFailure()
                 );
-            }); 
+            });
 
             return services;
         }

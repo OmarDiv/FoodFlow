@@ -1,55 +1,83 @@
-﻿using System.Collections.Generic;
-
-namespace FoodFlow.Services.Impelement
+﻿namespace FoodFlow.Services.Impelement
 {
     public class RestaurantService(ApplicationDbContext DbContext) : IRestaurantService
     {
         private readonly ApplicationDbContext _dbContext = DbContext;
         public async Task<Result<IEnumerable<RestaurantListResponse>>> GetAllRestaurantsAsync(CancellationToken cancellationToken = default)
         {
-            var list = await _dbContext.Restaurants
+            var restaurantLists = await _dbContext.Restaurants
+                .AsNoTracking()
+                .ProjectToType<RestaurantListResponse>()
+                .ToListAsync(cancellationToken);
+
+            return Result.Success<IEnumerable<RestaurantListResponse>>(restaurantLists);
+        }
+        public async Task<Result<IEnumerable<RestaurantListResponse>>> GetActiveRestaurantsAsync(CancellationToken cancellationToken = default)
+        {
+            var restaurantLists = await _dbContext.Restaurants
                 .Where(x => x.IsActive)
                 .AsNoTracking()
                 .ProjectToType<RestaurantListResponse>()
                 .ToListAsync(cancellationToken);
 
-            return Result.Success<IEnumerable<RestaurantListResponse>>(list);
+            return Result.Success<IEnumerable<RestaurantListResponse>>(restaurantLists);
         }
 
         public async Task<Result<RestaurantDetailsResponse>> GetRestaurantByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            var existingRestaurant = await _dbContext.Restaurants.FindAsync(id, cancellationToken);
-            if (existingRestaurant is null)
-                return Result.Failure<RestaurantDetailsResponse>(RestaurantErrors.NotFound);
-            var result = existingRestaurant.Adapt<RestaurantDetailsResponse>();
+            var existingRestaurant =
+                 await _dbContext.Restaurants.Where(x => x.Id == id).ProjectToType<RestaurantDetailsResponse>().FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
-            return Result.Success(result);
-
+            return existingRestaurant is null
+                ? Result.Failure<RestaurantDetailsResponse>(RestaurantErrors.NotFound)
+                : Result.Success(existingRestaurant);
         }
 
         public async Task<Result<RestaurantDetailsResponse>> CreateRestaurantAsync(CreateRestaurantRequest request, CancellationToken cancellationToken)
         {
-            var newRestaurant = request.Adapt<Restaurant>();
-            var result = await _dbContext.Restaurants.AddAsync(newRestaurant, cancellationToken);
-            if (result.Entity is null)
-                return Result.Failure<RestaurantDetailsResponse>(RestaurantErrors.FailedToCreate);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            var response = result.Entity.Adapt<RestaurantDetailsResponse>();
+            var restaurantIsExists = await _dbContext.Restaurants
+                .AnyAsync(x => x.Name.Trim().ToUpperInvariant() == request.Name.Trim().ToUpperInvariant(), cancellationToken);
 
+            if (restaurantIsExists)
+                return Result.Failure<RestaurantDetailsResponse>(RestaurantErrors.AlreadyExists);
+
+            var newRestaurant = request.Adapt<Restaurant>();
+            await _dbContext.Restaurants.AddAsync(newRestaurant, cancellationToken);
+
+            try
+            {
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                return Result.Failure<RestaurantDetailsResponse>(RestaurantErrors.FailedToCreate);
+            }
+
+            var response = newRestaurant.Adapt<RestaurantDetailsResponse>();
             return Result.Success(response);
         }
-
-        public async Task<Result> UpdateRestaurantAsync(int id, UpdateRestaurantRequest restaurant, CancellationToken cancellationToken)
+        public async Task<Result> UpdateRestaurantAsync(int id, UpdateRestaurantRequest request, CancellationToken cancellationToken)
         {
-            var existingRestaurant = await _dbContext.Restaurants.FindAsync(id, cancellationToken);
-            if (existingRestaurant is null)
+            var restaurant = await _dbContext.Restaurants.FindAsync(id, cancellationToken);
+            if (restaurant is null)
                 return Result.Failure(RestaurantErrors.NotFound);
 
-            restaurant.Adapt(existingRestaurant);
+            var restaurantIsExists = await _dbContext.Restaurants
+               .AnyAsync(x => x.Id != id && x.Name.Trim().ToUpperInvariant() == request.Name.Trim().ToUpperInvariant(), cancellationToken);
+            if (restaurantIsExists)
+                return Result.Failure(RestaurantErrors.AlreadyExists);
 
-            var saveResult = await _dbContext.SaveChangesAsync(cancellationToken);
-            if (saveResult == 0)
+            request.Adapt(restaurant);
+            try
+            {
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+            }
+            catch (Exception)
+            {
                 return Result.Failure(RestaurantErrors.FailedToUpdate);
+            }
+
 
             return Result.Success();
         }
@@ -60,16 +88,18 @@ namespace FoodFlow.Services.Impelement
             if (existingRestaurant is null)
                 return Result.Failure(RestaurantErrors.NotFound);
 
+
+            _dbContext.Restaurants.Remove(existingRestaurant);
             try
             {
-                _dbContext.Restaurants.Remove(existingRestaurant);
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return Result.Success();
+
             }
-            catch
+            catch (Exception)
             {
                 return Result.Failure(RestaurantErrors.FailedToDelete);
             }
+            return Result.Success();
         }
 
         public async Task<Result> ToggleOpenStatusAsync(int id, CancellationToken cancellationToken = default)
@@ -79,16 +109,17 @@ namespace FoodFlow.Services.Impelement
             if (existingRestaurant is null)
                 return Result.Failure(RestaurantErrors.NotFound);
 
+            existingRestaurant.IsOpen = !existingRestaurant.IsOpen;
             try
             {
-                existingRestaurant.IsOpen = !existingRestaurant.IsOpen;
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return Result.Success();
+
             }
-            catch
+            catch (Exception)
             {
                 return Result.Failure(RestaurantErrors.FailedToToggleStatus);
             }
+            return Result.Success();
         }
 
         public async Task<Result> ToggleActiveStatusAsync(int id, CancellationToken cancellationToken = default)
@@ -98,17 +129,19 @@ namespace FoodFlow.Services.Impelement
             if (existingRestaurant is null)
                 return Result.Failure(RestaurantErrors.NotFound);
 
+            existingRestaurant.IsActive = !existingRestaurant.IsActive;
             try
             {
-                existingRestaurant.IsActive = !existingRestaurant.IsActive;
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                return Result.Success();
+
             }
-            catch
+            catch (Exception)
             {
                 return Result.Failure(RestaurantErrors.FailedToToggleStatus);
             }
+            return Result.Success();
         }
+
 
     }
 }

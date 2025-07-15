@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FoodFlow.Persistence.EntitesConfigurations
 {
@@ -22,6 +21,15 @@ namespace FoodFlow.Persistence.EntitesConfigurations
             builder.Property(m => m.Price)
                 .HasPrecision(18, 2)
                 .IsRequired();
+
+            builder.HasOne(r => r.Category)
+                .WithMany(o => o.MenuItems)
+                .HasForeignKey(r => r.CategoryId);
+
+            builder.HasMany(r => r.OrderItems)
+                .WithOne(o => o.MenuItem)
+                .HasForeignKey(r => r.MenuItemId);
+
         }
     }
 }

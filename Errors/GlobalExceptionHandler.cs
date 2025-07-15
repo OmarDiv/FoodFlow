@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 
-namespace FoodFlow.Const.Error
+namespace FoodFlow.Errors
 {
-    public  class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+    public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
     {
         private readonly ILogger<GlobalExceptionHandler> _logger = logger;
 
-        public async  ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
             _logger.LogError(exception, "Somthing went Wrong{Message}", exception.Message);
 

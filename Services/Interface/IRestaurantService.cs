@@ -1,10 +1,9 @@
-﻿using FoodFlow.Contracts.Restaurants;
-
-namespace FoodFlow.Interface
+﻿namespace FoodFlow.Interface
 {
     public interface IRestaurantService
     {
         Task<Result<IEnumerable<RestaurantListResponse>>> GetAllRestaurantsAsync(CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<RestaurantListResponse>>> GetActiveRestaurantsAsync(CancellationToken cancellationToken = default);
         Task<Result<RestaurantDetailsResponse>> GetRestaurantByIdAsync(int restaurantId, CancellationToken cancellationToken = default);
         Task<Result<RestaurantDetailsResponse>> CreateRestaurantAsync(CreateRestaurantRequest request, CancellationToken cancellationToken = default);
         Task<Result> UpdateRestaurantAsync(int id, UpdateRestaurantRequest request, CancellationToken cancellationToken = default);

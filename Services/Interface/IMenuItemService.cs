@@ -1,6 +1,4 @@
-﻿using FoodFlow.Contracts.Categories;
-
-namespace FoodFlow.Services.Interface
+﻿namespace FoodFlow.Services.Interface
 {
     public interface IMenuItemService
     {

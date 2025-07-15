@@ -1,16 +1,16 @@
-﻿using FoodFlow.Contracts.Orders;
+﻿using FoodFlow.Const.Enum;
 
 namespace FoodFlow.Services.Interface
 {
     public interface IOrderService
     {
-        //Task<Result<OrderResponse>> CreateOrderAsync(CreateOrderRequest request, string userId);
-        //Task<Result<OrderResponse>> GetOrderByIdAsync(int orderId, string userId);
-        //Task<Result<List<OrderResponse>>> GetOrdersForCustomerAsync(string userId);
-        //Task<Result> CancelOrderAsync(int orderId, string userId);
-        //Task<Result<List<OrderResponse>>> GetOrdersForRestaurantAsync(int restaurantId);
-        //Task<Result<List<OrderResponse>>> GetPendingOrdersForRestaurantAsync(int restaurantId);
-        //Task<Result> UpdateOrderStatusAsync(int orderId, UpdateOrderStatusRequest request);
-        // ممكن تضيف أكتر حسب الحاجة
+        Task<Result<OrderResponse>> CreateOrderAsync(CreateOrderRequest request, string userId, CancellationToken cancellationToken = default);
+        Task<Result<OrderResponse>> GetOrderByIdAsync(int orderId, string userId, CancellationToken cancellationToken = default);
+        Task<Result<List<OrderResponse>>> GetOrdersForCustomerAsync(string userId, CancellationToken cancellationToken = default);
+        Task<Result> CancelOrderAsync(int orderId, string userId, CancellationToken cancellationToken = default);
+        Task<Result<List<OrderResponse>>> GetOrdersForRestaurantAsync(int restaurantId, CancellationToken cancellationToken = default);
+        Task<Result<List<OrderResponse>>> GetPendingOrdersForRestaurantAsync(int restaurantId, CancellationToken cancellationToken = default);
+        Task<Result> UpdateOrderStatusAsync(int orderId, OrderStatus newStatus, CancellationToken cancellationToken = default);
     }
 }
+

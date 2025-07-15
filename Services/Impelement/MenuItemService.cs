@@ -8,28 +8,25 @@
         {
             var items = await _context.MenuItems
                 .Where(i => i.CategoryId == categoryId && i.Category.RestaurantId == restaurantId && i.IsAvailable == true)
+                .ProjectToType<MenuItemResponse>()
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
-            if (!items.Any())
-                return Result.Failure<IEnumerable<MenuItemResponse>>(MenuItemErrors.NoItemsFound);
-
-            var response = items.Adapt<IEnumerable<MenuItemResponse>>();
-            return Result.Success(response);
+            return Result.Success<IEnumerable<MenuItemResponse>>(items);
         }
 
         public async Task<Result<MenuItemResponse>> GetItemByIdAsync(int restaurantId, int categoryId, int itemId, CancellationToken cancellationToken = default)
         {
             var item = await _context.MenuItems
-               .Where(i => i.Id == itemId && i.CategoryId == categoryId && i.Category.RestaurantId == restaurantId && i.IsAvailable == true)
-               .AsNoTracking()
-               .FirstOrDefaultAsync(cancellationToken);
+                .Where(i => i.Id == itemId && i.CategoryId == categoryId && i.Category.RestaurantId == restaurantId && i.IsAvailable)
+                .ProjectToType<MenuItemResponse>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (item is null)
                 return Result.Failure<MenuItemResponse>(MenuItemErrors.NotFound);
 
-            var response = item.Adapt<MenuItemResponse>();
-            return Result.Success(response);
+            return Result.Success(item);
         }
 
         public async Task<Result<MenuItemResponse>> CreateItemAsync(int restaurantId, int categoryId, CreateMenuItemRequest request, CancellationToken cancellationToken = default)

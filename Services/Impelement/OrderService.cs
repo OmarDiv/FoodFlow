@@ -1,137 +1,146 @@
-﻿//using FoodFlow.Const.Enum;
-//using FoodFlow.Contracts.Orders;
-//namespace FoodFlow.Services.Impelement
-//{
-//    public class OrderService(ApplicationDbContext dbContext) : IOrderService
-//    {
-//        private readonly ApplicationDbContext _dbContext = dbContext;
+﻿using FoodFlow.Const.Enum;
 
-//        public async Task<Result<OrderResponse>> CreateOrderAsync(CreateOrderRequest request, string userId)
-//        {
-//            try
-//            {
-//                var newOrder = request.Adapt<Order>();
-//                newOrder.UserId = userId;
-//                newOrder.Status = OrderStatus.Pending; // أو الحالة الافتراضية عندك
+namespace FoodFlow.Services.Impelement
+{
+    public class OrderService : IOrderService
+    {
+        private readonly ApplicationDbContext _dbContext;
 
-//                await _dbContext.Orders.AddAsync(newOrder);
-//                await _dbContext.SaveChangesAsync();
+        public OrderService(ApplicationDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
 
-//                var response = newOrder.Adapt<OrderResponse>();
-//                return Result.Success(response);
-//            }
-//            catch
-//            {
-//                return Result.Failure<OrderResponse>(OrderErrors.FailedToCreate);
-//            }
-//        }
+        public async Task<Result<OrderResponse>> CreateOrderAsync(CreateOrderRequest request, string userId, CancellationToken cancellationToken = default)
+        {
+            var restaurant = await _dbContext.Restaurants.FindAsync(request.RestaurantId, cancellationToken);
+            if (restaurant is null)
+                return Result.Failure<OrderResponse>(OrderErrors.RestaurantNotFound);
 
-//        public async Task<Result<OrderResponse>> GetOrderByIdAsync(int orderId, string userId)
-//        {
-//            var order = await _dbContext.Orders
-//                .AsNoTracking()
-//                .FirstOrDefaultAsync(o => o.Id == orderId);
+            var menuItemIds = request.Items.Select(i => i.MenuItemId).ToList();
 
-//            if (order is null)
-//                return Result.Failure<OrderResponse>(OrderErrors.NotFound);
+            // هات كل الـ MenuItems المطلوبة مع الـ Category بتاعها
+            var menuItems = await _dbContext.MenuItems
+                .Include(m => m.Category)
+                .Where(m => menuItemIds.Contains(m.Id))
+                .ToListAsync(cancellationToken);
 
-//            if (order.UserId != userId)
-//                return Result.Failure<OrderResponse>(OrderErrors.Unauthorized);
+            // تحقق إن كل الـ MenuItems فعلاً تابعة للمطعم عن طريق الـ Category
+            var allBelongToRestaurant = menuItems.All(m => m.Category.RestaurantId == request.RestaurantId);
 
-//            var response = order.Adapt<OrderResponse>();
-//            return Result.Success(response);
-//        }
+            if (menuItems.Count != menuItemIds.Count || !allBelongToRestaurant)
+                return Result.Failure<OrderResponse>(OrderErrors.InvalidMenuItems);
 
-//        public async Task<Result<List<OrderResponse>>> GetOrdersForCustomerAsync(string userId)
-//        {
-//            var orders = await _dbContext.Orders
-//                .Where(o => o.UserId == userId)
-//                .AsNoTracking()
-//                .ToListAsync();
+            var order = new Order
+            {
+                DeliveryAddress = "Customer Address Placeholder", // استبدلها بالعنوان الفعلي
+                CustomerId = userId,
+                RestaurantId = request.RestaurantId,
+                Status = OrderStatus.Pending,
+                OrderItems = request.Items.Select(item =>
+                {
+                    var menuItem = menuItems.First(m => m.Id == item.MenuItemId);
+                    return new OrderItem
+                    {
+                        MenuItemId = item.MenuItemId,
+                        Quantity = item.Quantity,
+                        UnitPrice = menuItem.Price
+                    };
+                }).ToList()
+            };
 
-//            if (!orders.Any())
-//                return Result.Failure<List<OrderResponse>>(OrderErrors.NoOrdersFound);
+            order.TotalAmount = order.OrderItems.Sum(x => x.UnitPrice * x.Quantity);
 
-//            var response = orders.Adapt<List<OrderResponse>>();
-//            return Result.Success(response);
-//        }
+            await _dbContext.Orders.AddAsync(order, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
-//        public async Task<Result<List<OrderResponse>>> GetOrdersForRestaurantAsync(int restaurantId)
-//        {
-//            var orders = await _dbContext.Orders
-//                .Where(o => o.RestaurantId == restaurantId)
-//                .AsNoTracking()
-//                .ToListAsync();
+            var response = order.Adapt<OrderResponse>();
+            return Result.Success(response);
+        }
 
-//            if (!orders.Any())
-//                return Result.Failure<List<OrderResponse>>(OrderErrors.NoOrdersFound);
+        public async Task<Result<OrderResponse>> GetOrderByIdAsync(int orderId, string userId, CancellationToken cancellationToken = default)
+        {
+            var order = await _dbContext.Orders
+                .Where(o => o.Id == orderId && o.CustomerId == userId)
+                .ProjectToType<OrderResponse>()
+                .FirstOrDefaultAsync(cancellationToken);
 
-//            var response = orders.Adapt<List<OrderResponse>>();
-//            return Result.Success(response);
-//        }
+            if (order is null)
+                return Result.Failure<OrderResponse>(OrderErrors.NotFound);
 
-//        public async Task<Result<List<OrderResponse>>> GetPendingOrdersForRestaurantAsync(int restaurantId)
-//        {
-//            var orders = await _dbContext.Orders
-//                .Where(o => o.RestaurantId == restaurantId && o.Status == OrderStatus.Pending)
-//                .AsNoTracking()
-//                .ToListAsync();
+            return Result.Success(order);
+        }
 
-//            if (!orders.Any())
-//                return Result.Failure<List<OrderResponse>>(OrderErrors.NoOrdersFound);
+        public async Task<Result<List<OrderResponse>>> GetOrdersForCustomerAsync(string userId, CancellationToken cancellationToken = default)
+        {
+            var orders = await _dbContext.Orders
+                .Where(o => o.CustomerId == userId)
+                .OrderByDescending(o => o.CreatedOn)
+                .ProjectToType<OrderResponse>()
+                .ToListAsync(cancellationToken);
 
-//            var response = orders.Adapt<List<OrderResponse>>();
-//            return Result.Success(response);
-//        }
+            if (!orders.Any())
+                return Result.Failure<List<OrderResponse>>(OrderErrors.NoOrdersFound);
 
-//        public async Task<Result> UpdateOrderStatusAsync(int orderId, UpdateOrderStatusRequest request)
-//        {
-//            var order = await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+            return Result.Success(orders);
+        }
 
-//            if (order is null)
-//                return Result.Failure(OrderErrors.NotFound);
+        public async Task<Result> CancelOrderAsync(int orderId, string userId, CancellationToken cancellationToken = default)
+        {
+            var order = await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+            if (order is null)
+                return Result.Failure(OrderErrors.NotFound);
 
-//            // تحقق من صحة الحالة الجديدة (مثلاً: لا يمكن إلغاء طلب مكتمل)
-//            if (!Enum.IsDefined(typeof(OrderStatus), request.Status))
-//                return Result.Failure(OrderErrors.InvalidStatus);
+            if (order.CustomerId != userId)
+                return Result.Failure(OrderErrors.Unauthorized);
 
-//            order.Status = request.Status;
+            if (order.Status != OrderStatus.Pending)
+                return Result.Failure(OrderErrors.CannotCancel);
 
-//            try
-//            {
-//                await _dbContext.SaveChangesAsync();
-//                return Result.Success();
-//            }
-//            catch
-//            {
-//                return Result.Failure(OrderErrors.FailedToUpdate);
-//            }
-//        }
+            order.Status = OrderStatus.Cancelled;
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
-//        public async Task<Result> CancelOrderAsync(int orderId, string userId)
-//        {
-//            var order = await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+            return Result.Success();
+        }
 
-//            if (order is null)
-//                return Result.Failure(OrderErrors.NotFound);
+        public async Task<Result<List<OrderResponse>>> GetOrdersForRestaurantAsync(int restaurantId, CancellationToken cancellationToken = default)
+        {
+            var orders = await _dbContext.Orders
+                .Where(o => o.RestaurantId == restaurantId)
+                .OrderByDescending(o => o.CreatedOn)
+                .ProjectToType<OrderResponse>()
+                .ToListAsync(cancellationToken);
 
-//            if (order.UserId != userId)
-//                return Result.Failure(OrderErrors.Unauthorized);
+            if (!orders.Any())
+                return Result.Failure<List<OrderResponse>>(OrderErrors.NoOrdersFound);
 
-//            if (order.Status == OrderStatus.Cancelled)
-//                return Result.Failure(OrderErrors.AlreadyCancelled);
+            return Result.Success(orders);
+        }
 
-//            order.Status = OrderStatus.Cancelled;
+        public async Task<Result<List<OrderResponse>>> GetPendingOrdersForRestaurantAsync(int restaurantId, CancellationToken cancellationToken = default)
+        {
+            var orders = await _dbContext.Orders
+                .Where(o => o.RestaurantId == restaurantId && o.Status == OrderStatus.Pending)
+                .OrderByDescending(o => o.CreatedOn)
+                .ProjectToType<OrderResponse>()
+                .ToListAsync(cancellationToken);
 
-//            try
-//            {
-//                await _dbContext.SaveChangesAsync();
-//                return Result.Success();
-//            }
-//            catch
-//            {
-//                return Result.Failure(OrderErrors.FailedToCancel);
-//            }
-//        }
-//    }
-//}
+            if (!orders.Any())
+                return Result.Failure<List<OrderResponse>>(OrderErrors.NoOrdersFound);
+
+            return Result.Success(orders);
+        }
+
+        public async Task<Result> UpdateOrderStatusAsync(int orderId, OrderStatus newStatus, CancellationToken cancellationToken = default)
+        {
+            var order = await _dbContext.Orders.FirstOrDefaultAsync(o => o.Id == orderId, cancellationToken);
+            if (order is null)
+                return Result.Failure(OrderErrors.NotFound);
+
+            order.Status = newStatus;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
+        }
+    }
+}

@@ -19,14 +19,14 @@ namespace FoodFlow.Services.Impelement
                 new Claim(JwtRegisteredClaimNames.Email , user.Email!),
                 new Claim(JwtRegisteredClaimNames.GivenName , user.FirstName),
                 new Claim(JwtRegisteredClaimNames.FamilyName , user.LastName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), 
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key)); 
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key));
 
             var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var expirationIn =_options.ExpirationInMinutes; // Token expiration time
+            var expirationIn = _options.ExpirationInMinutes; // Token expiration time
             var token = new JwtSecurityToken(
                 issuer: _options.Issuer, // Issuer
                 audience: _options.Audience, // Audience
@@ -34,7 +34,7 @@ namespace FoodFlow.Services.Impelement
                 expires: DateTime.UtcNow.AddMinutes(expirationIn),
                 signingCredentials: signingCredentials
             );
-            return (token : new JwtSecurityTokenHandler().WriteToken(token),expirationIn: expirationIn * 60);
+            return (token: new JwtSecurityTokenHandler().WriteToken(token), expirationIn: expirationIn * 60);
         }
 
         public string? ValidateToken(string token)
@@ -58,7 +58,7 @@ namespace FoodFlow.Services.Impelement
                 return jwtToken.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value;
 
             }
-            catch 
+            catch
             {
                 return null;
             }

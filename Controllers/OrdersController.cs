@@ -1,69 +1,101 @@
-﻿//using FoodFlow.Contracts.Orders;
-//using System.Security.Claims;
+﻿using FoodFlow.Contracts.Orders;
+using FoodFlow.Services.Interface;
+using FoodFlow.Const.Enum;
+using Microsoft.AspNetCore.Mvc;
 
-//[ApiController]
-//[Route("api/[controller]")]
-//public class OrdersController(IOrderService orderService) : ControllerBase
-//{
-//    private readonly IOrderService _orderService = orderService;
+namespace FoodFlow.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class OrdersController : ControllerBase
+    {
+        private readonly IOrderService _orderService;
 
-//    [HttpPost]
-//    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
-//    {
-//        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-//        var order = await _orderService.CreateOrderAsync(request, userId!);
-//        return Ok(order);
-//    }
+        public OrdersController(IOrderService orderService)
+        {
+            _orderService = orderService;
+        }
 
-//    [HttpGet]
-//    public async Task<IActionResult> GetMyOrders()
-//    {
-//        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-//        var orders = await _orderService.GetOrdersForCustomerAsync(userId!);
-//        return Ok(orders);
-//    }
+        [HttpPost]
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request, CancellationToken cancellationToken)
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+                return Unauthorized();
 
-//    [HttpGet("{id}")]
-//    public async Task<IActionResult> GetOrder(int id)
-//    {
-//        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-//        var order = await _orderService.GetOrderByIdAsync(id, userId!);
-//        return Ok(order);
-//    }
+            var result = await _orderService.CreateOrderAsync(request, userId, cancellationToken);
 
-//    [HttpPost("{id}/cancel")]
-//    public async Task<IActionResult> CancelOrder(int id)
-//    {
-//        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-//        await _orderService.CancelOrderAsync(id, userId!);
-//        return NoContent();
-//    }
+            return result.IsSuccess
+                ? Ok(result.Value)
+                : result.ToProblem();
+        }
 
-//    // ========== للمطعم ==========
+        [HttpGet("{orderId}")]
+        public async Task<IActionResult> GetOrderById(int orderId, CancellationToken cancellationToken)
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+                return Unauthorized();
 
-//    [HttpGet("restaurant/{restaurantId}")]
-//    //[Authorize(Roles = "RestaurantOwner")]
-//    public async Task<IActionResult> GetRestaurantOrders(int restaurantId)
-//    {
-//        var orders = await _orderService.GetOrdersForRestaurantAsync(restaurantId);
-//        return Ok(orders);
-//    }
+            var result = await _orderService.GetOrderByIdAsync(orderId, userId, cancellationToken);
 
-//    [HttpGet("restaurant/{restaurantId}/pending")]
-//    [Authorize(Roles = "RestaurantOwner")]
-//    public async Task<IActionResult> GetPendingOrders(int restaurantId)
-//    {
-//        var orders = await _orderService.GetPendingOrdersForRestaurantAsync(restaurantId);
-//        return Ok(orders);
-//    }
+            return result.IsSuccess
+                ? Ok(result.Value)
+                : result.ToProblem();
+        }
 
-//    [HttpPut("{id}/status")]
-//    [Authorize(Roles = "RestaurantOwner")]
-//    public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusRequest request)
-//    {
-//        var updated = await _orderService.UpdateOrderStatusAsync(id, request);
-//        if (updated is not true)
-//            return BadRequest(); // أو Forbid() حسب السيناريو
-//        return NoContent();
-//    }
-//}
+        [HttpGet("customer")]
+        public async Task<IActionResult> GetOrdersForCustomer(CancellationToken cancellationToken)
+        {
+            var userId = User.GetUserId();
+            var result = await _orderService.GetOrdersForCustomerAsync(userId!, cancellationToken);
+
+            return result.IsSuccess
+                ? Ok(result.Value)
+                : result.ToProblem();
+        }
+
+        [HttpPost("{orderId}/cancel")]
+        public async Task<IActionResult> CancelOrder(int orderId, CancellationToken cancellationToken)
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var result = await _orderService.CancelOrderAsync(orderId, userId, cancellationToken);
+
+            return result.IsSuccess
+                ? NoContent()
+                : result.ToProblem();
+        }
+        [HttpGet("restaurant/{restaurantId}")]
+        public async Task<IActionResult> GetOrdersForRestaurant(int restaurantId, CancellationToken cancellationToken)
+        {
+            var result = await _orderService.GetOrdersForRestaurantAsync(restaurantId, cancellationToken);
+
+            return result.IsSuccess
+                ? Ok(result.Value)
+                : result.ToProblem();
+        }
+
+        [HttpGet("restaurant/{restaurantId}/pending")]
+        public async Task<IActionResult> GetPendingOrdersForRestaurant(int restaurantId, CancellationToken cancellationToken)
+        {
+            var result = await _orderService.GetPendingOrdersForRestaurantAsync(restaurantId, cancellationToken);
+
+            return result.IsSuccess
+                ? Ok(result.Value)
+                : result.ToProblem();
+        }
+
+        [HttpPost("{orderId}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] OrderStatus newStatus, CancellationToken cancellationToken)
+        {
+            var result = await _orderService.UpdateOrderStatusAsync(orderId, newStatus, cancellationToken);
+
+            return result.IsSuccess
+                ? NoContent()
+                : result.ToProblem();
+        }
+    }
+}

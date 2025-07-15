@@ -1,84 +1,100 @@
 ﻿using FoodFlow.Contracts.Categories;
-using FoodFlow.Entities;
 
 namespace FoodFlow.Services.Impelement
 {
     public class CategoryService(ApplicationDbContext applicationDbContext) : ICategoryService
     {
-        private readonly ApplicationDbContext _context = applicationDbContext;
+        private readonly ApplicationDbContext _dbContext = applicationDbContext;
 
-        public async Task<IEnumerable<CategoryResponse>> GetAllCategoriesAsync(int restaurantId, CancellationToken cancellationToken = default)
+        public async Task<Result<IEnumerable<CategoryResponse>>> GetAllCategoriesAsync(int restaurantId, CancellationToken cancellationToken = default)
         {
-            var categories = await _context.Categories.Where(c => c.Restaurant.Id == restaurantId)
-                .Include(c => c.MenuItems)
-                .Include(c => c.Restaurant)
+            var categories = await _dbContext.Categories
+                .Where(c => c.RestaurantId == restaurantId)
+                .ProjectToType<CategoryResponse>()
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
-            if (categories is null)
-                return null!;
-
-
-            return categories.Adapt<IEnumerable<CategoryResponse>>();
+            return Result.Success<IEnumerable<CategoryResponse>>(categories);
         }
 
-        public async Task<CategoryResponse?> GetCategoryByIdAsync(int restaurantId, int id, CancellationToken cancellationToken = default)
+        public async Task<Result<CategoryResponse>> GetCategoryByIdAsync(int restaurantId, int id, CancellationToken cancellationToken = default)
         {
-            var category = await _context.Categories
+            var category = await _dbContext.Categories
                                  .Where(c => c.Id == id && c.RestaurantId == restaurantId)
-                                 .Include(r => r.Restaurant)
-                                 .Include(m => m.MenuItems)
+                                 .ProjectToType<CategoryResponse>()
                                  .FirstOrDefaultAsync(cancellationToken);
-            if (category is null)
-                return null!;
-            return category.Adapt<CategoryResponse>();
+            return category is null
+                 ? Result.Failure<CategoryResponse>(CategoryErrors.NotFound)
+                 : Result.Success(category);
         }
 
-        public async Task<CategoryResponse?> CreateCategoryAsync(int restaurantId, CreateCategoryRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result<CategoryResponse>> CreateCategoryAsync(int restaurantId, CreateCategoryRequest request, CancellationToken cancellationToken = default)
         {
-            var exists = await _context.Restaurants
-                .AnyAsync(r => r.Id == restaurantId, cancellationToken);
+            var exists = await _dbContext.Restaurants.AnyAsync(r => r.Id == restaurantId, cancellationToken);
             if (!exists)
-                return null;
+                return Result.Failure<CategoryResponse>(RestaurantErrors.NotFound);
+
+            var isDuplicate = await _dbContext.Categories
+                .AnyAsync(c => c.RestaurantId == restaurantId && c.Name.ToLower() == request.Name.ToLower(), cancellationToken);
+            if (isDuplicate)
+                return Result.Failure<CategoryResponse>(CategoryErrors.AlreadyExists);
 
             var newCategory = request.Adapt<Category>();
             newCategory.RestaurantId = restaurantId;
 
-            await _context.Categories.AddAsync(newCategory, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _dbContext.Categories.AddAsync(newCategory, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return newCategory.Adapt<CategoryResponse>();
+            return Result.Success(newCategory.Adapt<CategoryResponse>());
         }
 
-
-        public async Task<bool> UpdateCategoryAsync(int restaurantId, int categoryId, UpdateCategoryRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result> UpdateCategoryAsync(int restaurantId, int categoryId, UpdateCategoryRequest request, CancellationToken cancellationToken = default)
         {
-            var existingCategory = await _context.Categories.FirstOrDefaultAsync(c => c.Id == categoryId && c.RestaurantId == restaurantId, cancellationToken);
+            var existingCategory = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Id == categoryId && c.RestaurantId == restaurantId, cancellationToken);
             if (existingCategory == null)
-                return false;
+                return Result.Failure(CategoryErrors.NotFound);
 
-            var isDuplicate = await _context.Categories
+            var isDuplicate = await _dbContext.Categories
                     .AnyAsync(c =>
                         c.Id != categoryId &&
                         c.RestaurantId == restaurantId &&
                         c.Name.ToLower() == request.Name.ToLower(),
                         cancellationToken);
+
             if (isDuplicate)
-                return false;
+                return Result.Failure(CategoryErrors.AlreadyExists);
 
             existingCategory.Name = request.Name;
-            await _context.SaveChangesAsync(cancellationToken);
-            return true;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
+
         }
 
-        public async Task<bool> DeleteCategoryAsync(int restaurantId, int categoryId, CancellationToken cancellationToken = default)
+        public async Task<Result> DeleteCategoryAsync(int restaurantId, int categoryId, CancellationToken cancellationToken = default)
         {
-            var existCategory =  await _context.Categories.FirstOrDefaultAsync(c => c.Id == categoryId && c.RestaurantId == restaurantId, cancellationToken);
+            var existCategory = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Id == categoryId && c.RestaurantId == restaurantId, cancellationToken);
             if (existCategory is null)
-                return false;
-            _context.Categories.Remove(existCategory);
-            await _context.SaveChangesAsync(cancellationToken);
-            return true;
+                return Result.Failure(CategoryErrors.NotFound);
+
+            _dbContext.Categories.Remove(existCategory);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
+        }
+
+        public async Task<Result> ToggleActiveStatusAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var existingCategory = await _dbContext.Categories.FindAsync(id, cancellationToken);
+
+            if (existingCategory is null)
+                return Result.Failure(CategoryErrors.NotFound);
+
+            existingCategory.IsAvailble = !existingCategory.IsAvailble;
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
         }
     }
 }

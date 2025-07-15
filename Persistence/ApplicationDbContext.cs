@@ -8,7 +8,8 @@ namespace FoodFlow.Persistence
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
         public DbSet<Restaurant> Restaurants { get; set; } = null!;
-        // public DbSet<Order> Orders { get; set; } = null!;
+        public DbSet<Order> Orders { get; set; } = null!;
+        public DbSet<OrderItem> OrderItems { get; set; } = null!;
         public DbSet<MenuItem> MenuItems { get; set; } = null!;
         public DbSet<Category> Categories { get; set; } = null!;
 
@@ -29,7 +30,7 @@ namespace FoodFlow.Persistence
             var entries = ChangeTracker.Entries<AuditableEntity>();
             foreach (var entityEntry in entries)
             {
-                var CurrentUserId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+                var CurrentUserId = _httpContextAccessor.HttpContext?.User.GetUserId()!;
                 if (entityEntry.State == EntityState.Added)
                 {
                     entityEntry.Property(e => e.CreatedById).CurrentValue = CurrentUserId;

@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FoodFlow.Persistence.EntitesConfigurations
 {
@@ -9,6 +8,14 @@ namespace FoodFlow.Persistence.EntitesConfigurations
         {
             builder.HasIndex(r => r.PhoneNumber).IsUnique();
             builder.HasIndex(r => new { r.Name, r.Address }).IsUnique();
+
+            builder.HasMany(c => c.Categories)
+                          .WithOne(r => r.Restaurant)
+                          .HasForeignKey(o => o.RestaurantId);
+
+            builder.HasMany(c => c.Orders)
+                          .WithOne(r => r.Restaurant)
+                          .HasForeignKey(o => o.RestaurantId);
 
             builder.Property(r => r.Name)
                 .IsRequired()
