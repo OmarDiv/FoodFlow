@@ -65,7 +65,7 @@ FoodFlow is being built with all the essential modules and best practices requir
 
 ---
 
-### **Entity Relationship Diagram (UberEats-like)**
+### **Entity Relationship Diagram**
 
 ```mermaid
 erDiagram
