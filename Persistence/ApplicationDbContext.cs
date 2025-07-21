@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace FoodFlow.Persistence
 {

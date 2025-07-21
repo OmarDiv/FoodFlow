@@ -1,4 +1,6 @@
 ﻿using FoodFlow.Contracts.Authentication;
+using FoodFlow.Services.Implementations;
+using FoodFlow.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -12,15 +14,17 @@ namespace FoodFlow
         {
 
             services.AddControllers();
+            services.AddHybridCache();
+
 
             services.AddCors(options =>
-                 options.AddDefaultPolicy(builder =>
-                  builder
-                         .AllowAnyMethod()
-                         .AllowAnyHeader()
-                         .WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>()!)
-                 )
-             );
+                options.AddDefaultPolicy(builder =>
+                    builder
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>()!)
+                )
+            );
 
             services
                 .AddAuthConfig(configuration)
@@ -30,13 +34,18 @@ namespace FoodFlow
                     .DbContextConfig(configuration);
 
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IEmailSender, EmailService>();
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.AddScoped<IMenuItemService, MenuItemService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IRestaurantService, RestaurantService>();
+            //services.AddScoped<ICacheService, CacheService>(); //distributed cache
 
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
+            services.AddHttpContextAccessor();
+            services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
+
 
             return services;
         }
@@ -84,11 +93,17 @@ namespace FoodFlow
         private static IServiceCollection AddAuthConfig(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
             services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName)); //السطر ده هوه المسؤول عن عمليه ال DI 
 
-            var setting = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>(); //بعمل bind بين ال appsettings و ال JwtOptions
+
+            // لا يمكن استخدام IOptions<JwtOptions> في Program.cs أثناء تسجيل الـ Middleware(مثل AddJwtBearer)
+            // لأننا في مرحلة بناء الـ services، ولسه الـ Dependency Injection ما اشتغلش
+            // لذلك نحتاج إلى عملية Bind يدوية (Manual Bind) لإعداد JwtOptions مؤقتًا
+            // حتى نستخدم القيم فورًا أثناء إعداد TokenValidationParameters
+            var setting = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
 
             services.AddAuthentication(options =>
             {
@@ -109,7 +124,13 @@ namespace FoodFlow
                     ValidAudience = setting?.Audience,
                 };
             });
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.SignIn.RequireConfirmedEmail = true;
+                options.User.RequireUniqueEmail = true;
 
+            });
             return services;
         }
 

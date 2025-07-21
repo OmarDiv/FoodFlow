@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace FoodFlow.Errors
+﻿namespace FoodFlow.Errors
 {
     public static class RestaurantErrors
     {

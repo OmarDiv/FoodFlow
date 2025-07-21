@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="en" style="margin:0;padding:0;">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Your Email</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+                padding: 10px !important;
+            }
+
+            .content {
+                padding: 24px !important;
+            }
+        }
+
+        a.button:hover {
+            background: #1ed760 !important;
+        }
+    </style>
+</head>
+<body style="margin:0;padding:0;background:#23272f;font-family:'Segoe UI',Arial,sans-serif;">
+    <table width="100%" bgcolor="#23272f" cellpadding="0" cellspacing="0" style="padding:0;">
+        <tr>
+            <td align="center">
+                <table class="container" width="480" bgcolor="#23272f" cellpadding="0" cellspacing="0" style="border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,0.18);overflow:hidden;margin:40px 0;">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="padding:36px 0 0 0;">
+                            <img src="https://img.icons8.com/color/96/000000/restaurant.png" width="56" alt="Logo" style="display:block;margin-bottom:10px;">
+                            <h1 style="color:#fff;font-size:26px;margin:0 0 8px 0;font-weight:700;letter-spacing:1px;">FoodFlow</h1>
+                        </td>
+                    </tr>
+                    <!-- Content -->
+                    <tr>
+                        <td class="content" style="padding:32px 48px 24px 48px;">
+                            <h2 style="color:#fff;font-size:22px;margin:0 0 16px 0;font-weight:600;">Hi {{UserName}},</h2>
+                            <p style="color:#cfcfcf;font-size:16px;line-height:1.7;margin:0 0 24px 0;">
+                                Welcome to <b>FoodFlow</b>!<br>
+                                To confirm your email, please click the button below:
+                            </p>
+                            <div style="text-align:center;margin:36px 0;">
+                                <a href="{{ConfirmLink}}" class="button" style="background:#1dbf73;color:#fff;text-decoration:none;padding:16px 48px;border-radius:8px;font-size:18px;font-weight:600;display:inline-block;box-shadow:0 2px 8px rgba(30,191,115,0.18);transition:background 0.2s;">
+                                    Verify Email Address
+                                </a>
+                            </div>
+                            <p style="color:#b0b0b0;font-size:14px;line-height:1.5;margin:0 0 18px 0;text-align:center;">
+                                If the button doesn't work, copy and paste this link into your browser:<br>
+                                <span style="color:#1dbf73;word-break:break-all;">{{ConfirmLink}}</span>
+                            </p>
+                            <p style="color:#888;font-size:14px;margin:32px 0 0 0;text-align:center;">
+                                If you did not create an account, you can safely ignore this email.
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="background:#23272f;padding:24px 0 12px 0;">
+                            <p style="color:#555;font-size:13px;margin:0;">
+                                &copy; 2024 FoodFlow. All rights reserved.<br>
+                                <span style="color:#444;">123 Food Street, Cairo, Egypt</span>
+                            </p>
+                            <p style="color:#444;font-size:12px;margin:8px 0 0 0;">
+                                Need help? <a href="mailto:support@foodflow.com" style="color:#1dbf73;text-decoration:none;">Contact support</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

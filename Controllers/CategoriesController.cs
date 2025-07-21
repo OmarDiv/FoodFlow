@@ -1,5 +1,4 @@
 ﻿using FoodFlow.Contracts.Categories;
-using Microsoft.AspNetCore.Mvc;
 
 namespace FoodFlow.Controllers
 {

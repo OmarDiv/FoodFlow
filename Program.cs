@@ -1,8 +1,6 @@
 using FoodFlow;
 using Serilog;
-
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.RegisterDependancies(builder.Configuration);
 

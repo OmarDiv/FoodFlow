@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using FoodFlow.Entities;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FoodFlow.Persistence.EntitesConfigurations
 {

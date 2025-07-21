@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
+
 namespace FoodFlow.Controllers
 {
     [Route("api/[controller]")]
@@ -8,7 +10,7 @@ namespace FoodFlow.Controllers
         public readonly IRestaurantService _restaurantService = restaurantService;
 
         [HttpGet]
-        //[Authorize]
+        [Authorize]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var result = await _restaurantService.GetAllRestaurantsAsync(cancellationToken);
@@ -40,8 +42,8 @@ namespace FoodFlow.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRestaurantRequest request, CancellationToken cancellationToken)
         {
-
-            var result = await _restaurantService.CreateRestaurantAsync(request, cancellationToken);
+            var userId = User.GetUserId();
+            var result = await _restaurantService.CreateRestaurantAsync(request, userId!, cancellationToken);
 
             return result.IsSuccess
                 ? CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value)

@@ -1,6 +1,4 @@
-﻿using FoodFlow.Const.Enum;
-
-namespace FoodFlow.Services.Interface
+﻿namespace FoodFlow.Services.Interface
 {
     public interface IOrderService
     {

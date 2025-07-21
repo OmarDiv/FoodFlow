@@ -1,4 +1,4 @@
-﻿namespace FoodFlow.Const.Enum
+﻿namespace FoodFlow.Abstractions.Const
 {
     public enum OrderStatus
     {
