@@ -1,5 +1,8 @@
-﻿[ApiController]
+﻿using Microsoft.AspNetCore.Authorization;
+
+[ApiController]
 [Route("api/restaurants/{restaurantId}/categories/{categoryId}/[controller]")]
+[Authorize]
 public class MenuItemsController(IMenuItemService menuItemService) : ControllerBase
 {
     private readonly IMenuItemService _menuItemService = menuItemService;

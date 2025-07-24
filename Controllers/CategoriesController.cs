@@ -1,13 +1,15 @@
 ﻿using FoodFlow.Contracts.Categories;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FoodFlow.Controllers
 {
     [ApiController]
     [Route("api/restaurants/{restaurantId}/[controller]")]
+    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
-
+        private const string _CacheKeyPrefix = "categories";
         public CategoriesController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
@@ -55,6 +57,15 @@ namespace FoodFlow.Controllers
         public async Task<IActionResult> Delete([FromRoute] int restaurantId, [FromRoute] int categoryId, CancellationToken cancellationToken)
         {
             var result = await _categoryService.DeleteCategoryAsync(restaurantId, categoryId, cancellationToken);
+            return result.IsSuccess
+                ? NoContent()
+                : result.ToProblem();
+        }
+        [HttpPut("{categoryId}/toggle-status")]
+        //[Authorize(Roles = "RestaurantOwner")]
+        public async Task<IActionResult> ToggleStatus([FromRoute] int restaurantId, [FromRoute] int categoryId, CancellationToken cancellationToken)
+        {
+            var result = await _categoryService.ToggleAvilableStatusAsync(restaurantId, categoryId, cancellationToken);
             return result.IsSuccess
                 ? NoContent()
                 : result.ToProblem();

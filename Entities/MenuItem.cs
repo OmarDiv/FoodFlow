@@ -9,7 +9,6 @@
         public string ImageUrl { get; set; } = string.Empty;
         public bool IsAvailable { get; set; } = true;
         public int CategoryId { get; set; }
-
         public Category Category { get; set; } = null!;
 
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

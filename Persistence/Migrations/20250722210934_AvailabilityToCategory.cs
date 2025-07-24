@@ -5,13 +5,13 @@
 namespace FoodFlow.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AddAvilabilityToCategoryEntity : Migration
+    public partial class AvailabilityToCategory : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
-                name: "IsAvailble",
+                name: "IsAvailable",
                 table: "Categories",
                 type: "bit",
                 nullable: false,
@@ -22,7 +22,7 @@ namespace FoodFlow.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "IsAvailble",
+                name: "IsAvailable",
                 table: "Categories");
         }
     }

@@ -1,6 +1,6 @@
 ﻿namespace FoodFlow.Contracts.Restaurants
 {
-    public record RestaurantDetailsResponse(
+    public record RestaurantResponse(
     int Id,
     string Name,
     string? Description,

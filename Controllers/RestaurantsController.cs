@@ -1,89 +1,73 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
-
+﻿using Microsoft.AspNetCore.Authorization;
 namespace FoodFlow.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class RestaurantsController(IRestaurantService restaurantService) : ControllerBase
     {
-        public readonly IRestaurantService _restaurantService = restaurantService;
+        private readonly IRestaurantService _restaurantService = restaurantService;
 
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var result = await _restaurantService.GetAllRestaurantsAsync(cancellationToken);
-
-            return result.IsSuccess
-                 ? Ok(result.Value)
-                : result.ToProblem();
+            return Ok(result.Value);
         }
         [HttpGet("active")]
         public async Task<IActionResult> GetActive(CancellationToken cancellationToken)
         {
-            var result = await _restaurantService.GetAllRestaurantsAsync(cancellationToken);
+            var result = await _restaurantService.GetActiveRestaurantsAsync(cancellationToken);
 
-            return result.IsSuccess
-                 ? Ok(result.Value)
-                : result.ToProblem();
+            return Ok(result.Value);
         }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
+        [HttpGet("{restaurantId}")]
+        public async Task<IActionResult> GetById([FromRoute] int restaurantId, CancellationToken cancellationToken = default)
         {
-            var result = await _restaurantService.GetRestaurantByIdAsync(id);
-            return result.IsSuccess
-                 ? Ok(result.Value)
-                : result.ToProblem();
+            var result = await _restaurantService.GetRestaurantByIdAsync(restaurantId);
+            return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
         }
-
-
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRestaurantRequest request, CancellationToken cancellationToken)
         {
-            var userId = User.GetUserId();
-            var result = await _restaurantService.CreateRestaurantAsync(request, userId!, cancellationToken);
+            var result = await _restaurantService.CreateRestaurantAsync(request, cancellationToken);
 
             return result.IsSuccess
-                ? CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value)
+                ? CreatedAtAction(nameof(GetById), new { restaurantId = result.Value!.Id }, result.Value)
                 : result.ToProblem();
         }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateRestaurantRequest request, CancellationToken cancellationToken = default)
+        [HttpPut("{restaurantId}")]
+        public async Task<IActionResult> Update([FromRoute] int restaurantId, [FromBody] UpdateRestaurantRequest request, CancellationToken cancellationToken = default)
         {
-            var result = await _restaurantService.UpdateRestaurantAsync(id, request, cancellationToken);
+            var result = await _restaurantService.UpdateRestaurantAsync(restaurantId, request, cancellationToken);
             return result.IsSuccess
                 ? NoContent()
                 : result.ToProblem();
         }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
+        [HttpDelete("{restaurantId}")]
+        public async Task<IActionResult> Delete([FromRoute] int restaurantId, CancellationToken cancellationToken = default)
         {
-            var result = await _restaurantService.DeleteRestaurantAsync(id, cancellationToken);
+            var result = await _restaurantService.DeleteRestaurantAsync(restaurantId, cancellationToken);
 
             return result.IsSuccess
                 ? NoContent()
                 : result.ToProblem();
         }
-        [HttpPut("{id}/toggle-open")]
-        public async Task<IActionResult> ToggleOpenStatus(int id, CancellationToken cancellationToken = default)
+        [HttpPut("{restaurantId}/toggle-open")]
+        public async Task<IActionResult> ToggleOpenStatus([FromRoute] int restaurantId, CancellationToken cancellationToken = default)
         {
-            var result = await _restaurantService.ToggleOpenStatusAsync(id, cancellationToken);
+            var result = await _restaurantService.ToggleOpenStatusAsync(restaurantId, cancellationToken);
             return result.IsSuccess
                 ? NoContent()
                 : result.ToProblem();
         }
-        [HttpPut("{id}/toggle-active")]
-        public async Task<IActionResult> ToggleActiveStatus(int id, CancellationToken cancellationToken = default)
+        [HttpPut("{restaurantId}/toggle-active")]
+        public async Task<IActionResult> ToggleActiveStatus([FromRoute] int restaurantId, CancellationToken cancellationToken = default)
         {
-            var result = await _restaurantService.ToggleActiveStatusAsync(id, cancellationToken);
+            var result = await _restaurantService.ToggleActiveStatusAsync(restaurantId, cancellationToken);
             return result.IsSuccess
                ? NoContent()
                : result.ToProblem();
         }
-
     }
 }

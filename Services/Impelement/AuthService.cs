@@ -1,5 +1,6 @@
 ﻿using FoodFlow.Contracts.Authentication;
 using FoodFlow.Helpers;
+using Hangfire;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Security.Cryptography;
 using System.Text;
@@ -217,7 +218,9 @@ namespace FoodFlow.Services.Impelement
                             { "{{UserName}}", user.FirstName },
                             { "{{ConfirmLink}}", $"{origin}/auth/confirm-email?userId={user.Id}&code={code}" }
                         });
-            await _emailSender.SendEmailAsync(user.Email!, "Food Flow Team", emailBody);
+            BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "Food Flow Team", emailBody));
+
+            await Task.CompletedTask;
         }
 
     }

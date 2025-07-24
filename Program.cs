@@ -1,4 +1,8 @@
 using FoodFlow;
+using FoodFlow.Settings;
+using Hangfire;
+using HangfireBasicAuthenticationFilter;
+using Microsoft.Extensions.Options;
 using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +21,25 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+;
+var hangfireSettings = app.Services
+    .GetRequiredService<IOptions<HangfireSettings>>()
+    .Value;
+app.UseHangfireDashboard("/Jobs",
+    new DashboardOptions
+    {
+
+        Authorization = [
+
+            new HangfireCustomBasicAuthenticationFilter
+            {
+                User = hangfireSettings.Username,
+                Pass = hangfireSettings.Password
+            }
+
+        ]
+    }
+);
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();

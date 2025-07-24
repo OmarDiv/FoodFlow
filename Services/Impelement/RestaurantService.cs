@@ -6,48 +6,46 @@ namespace FoodFlow.Services.Impelement
     {
         private readonly ApplicationDbContext _dbContext = DbContext;
         private readonly HybridCache _hybridCache = hybridCache;
-
+        #region distributed cache    
         // private readonly ICacheService _cacheService = cacheService;     "distributed cache service"
-
-        string CacheKey = "RestaurantList";
-        private const string _CacheKey = "RestaurantList";
-
-        public async Task<Result<IEnumerable<RestaurantListResponse>>> GetAllRestaurantsAsync(CancellationToken cancellationToken = default)
+        #endregion
+        private const string _CacheKeyPrefix = "restaurants";
+        public async Task<Result<IEnumerable<RestaurantSummaryResponse>>> GetAllRestaurantsAsync(CancellationToken cancellationToken = default)
         {
-            var cacheKey = $"{_CacheKey}_All";
-            var restaurantLists = await _hybridCache.GetOrCreateAsync<IEnumerable<RestaurantListResponse>>(
+            var cacheKey = $"{_CacheKeyPrefix}_All";
+            var restaurantLists = await _hybridCache.GetOrCreateAsync<IEnumerable<RestaurantSummaryResponse>>(
                 cacheKey,
                 async entry =>
                 await _dbContext.Restaurants
-                .ProjectToType<RestaurantListResponse>()
+                .ProjectToType<RestaurantSummaryResponse>()
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
                 );
             return Result.Success(restaurantLists);
         }
-        public async Task<Result<IEnumerable<RestaurantListResponse>>> GetActiveRestaurantsAsync(CancellationToken cancellationToken = default)
+        public async Task<Result<IEnumerable<RestaurantSummaryResponse>>> GetActiveRestaurantsAsync(CancellationToken cancellationToken = default)
         {
-            var cacheKey = $"{_CacheKey}_Active";
-            var restaurantLists = await _hybridCache.GetOrCreateAsync<IEnumerable<RestaurantListResponse>>(
+            var cacheKey = $"{_CacheKeyPrefix}_Active";
+            var restaurantLists = await _hybridCache.GetOrCreateAsync<IEnumerable<RestaurantSummaryResponse>>(
                 cacheKey,
                 async entry => await _dbContext.Restaurants
                 .Where(x => x.IsActive)
-                .ProjectToType<RestaurantListResponse>()
+                .ProjectToType<RestaurantSummaryResponse>()
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
             );
             return Result.Success(restaurantLists);
         }
 
-        public async Task<Result<RestaurantDetailsResponse>> GetRestaurantByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Result<RestaurantResponse>> GetRestaurantByIdAsync(int restaurantId, CancellationToken cancellationToken = default)
         {
-            var cacheKey = $"{_CacheKey}_{id}";
+            var cacheKey = $"{_CacheKeyPrefix}_{restaurantId}";
 
             var existingRestaurant = await _hybridCache.GetOrCreateAsync(
                 cacheKey, async entry =>
                 await _dbContext.Restaurants
-                .Where(x => x.Id == id)
-                .ProjectToType<RestaurantDetailsResponse>()
+                .Where(x => x.Id == restaurantId)
+                .ProjectToType<RestaurantResponse>()
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken)
                 );
             #region distributed cache service
@@ -63,35 +61,45 @@ namespace FoodFlow.Services.Impelement
             #endregion
 
             return existingRestaurant is null
-               ? Result.Failure<RestaurantDetailsResponse>(RestaurantErrors.NotFound)
+               ? Result.Failure<RestaurantResponse>(RestaurantErrors.NotFound)
                : Result.Success(existingRestaurant);
         }
 
-        public async Task<Result<RestaurantDetailsResponse>> CreateRestaurantAsync(CreateRestaurantRequest request, string user, CancellationToken cancellationToken)
+        public async Task<Result<RestaurantResponse>> CreateRestaurantAsync(CreateRestaurantRequest request, CancellationToken cancellationToken = default)
         {
             var restaurantIsExists = await _dbContext.Restaurants
-                .AnyAsync(x => x.Name == request.Name, cancellationToken);
-
+                .AnyAsync(x => (x.Name == request.Name && x.Address == request.Address) || x.PhoneNumber == request.PhoneNumber, cancellationToken);
             if (restaurantIsExists)
-                return Result.Failure<RestaurantDetailsResponse>(RestaurantErrors.AlreadyExists);
+                return Result.Failure<RestaurantResponse>(RestaurantErrors.AlreadyExists);
 
             var newRestaurant = request.Adapt<Restaurant>();
-            newRestaurant.CreatedById = user;
-            await _dbContext.Restaurants.AddAsync(newRestaurant, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _dbContext.Restaurants.AddAsync(newRestaurant, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await InvalidateRestaurantCache(null);
 
-            var response = newRestaurant.Adapt<RestaurantDetailsResponse>();
+            }
+            catch (Exception)
+            {
+                return Result.Failure<RestaurantResponse>(RestaurantErrors.FailedToCreate);
+            }
+
+
+            var response = newRestaurant.Adapt<RestaurantResponse>();
 
             return Result.Success(response);
         }
-        public async Task<Result> UpdateRestaurantAsync(int id, UpdateRestaurantRequest request, CancellationToken cancellationToken)
+        public async Task<Result> UpdateRestaurantAsync(int restaurantId, UpdateRestaurantRequest request, CancellationToken cancellationToken)
         {
-            var restaurant = await _dbContext.Restaurants.FindAsync(id, cancellationToken);
+            var restaurant = await _dbContext.Restaurants.FindAsync(restaurantId, cancellationToken);
             if (restaurant is null)
                 return Result.Failure(RestaurantErrors.NotFound);
 
             var restaurantIsExists = await _dbContext.Restaurants
-               .AnyAsync(x => x.Id != id && x.Name.Trim().ToUpperInvariant() == request.Name.Trim().ToUpperInvariant(), cancellationToken);
+                .AnyAsync(x => x.Id != restaurantId && (
+                (x.Name == request.Name && x.Address == request.Address) || x.PhoneNumber == request.PhoneNumber),
+                cancellationToken);
             if (restaurantIsExists)
                 return Result.Failure(RestaurantErrors.AlreadyExists);
 
@@ -100,7 +108,7 @@ namespace FoodFlow.Services.Impelement
             {
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 //await _cacheService.RemoveAsync($"{_CacheKey}_{id}", cancellationToken);       "distributed cache service"
-                await _hybridCache.RemoveAsync($"{_CacheKey}_{id}", cancellationToken);
+                await InvalidateRestaurantCache(restaurantId);
             }
             catch (Exception)
             {
@@ -111,9 +119,9 @@ namespace FoodFlow.Services.Impelement
             return Result.Success();
         }
 
-        public async Task<Result> DeleteRestaurantAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Result> DeleteRestaurantAsync(int restaurantId, CancellationToken cancellationToken = default)
         {
-            var existingRestaurant = await _dbContext.Restaurants.FindAsync(id, cancellationToken);
+            var existingRestaurant = await _dbContext.Restaurants.FindAsync(restaurantId, cancellationToken);
             if (existingRestaurant is null)
                 return Result.Failure(RestaurantErrors.NotFound);
 
@@ -123,7 +131,7 @@ namespace FoodFlow.Services.Impelement
             {
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 //await _cacheService.RemoveAsync($"{_CacheKey}_{id}", cancellationToken);      "distributed cache service"
-                await _hybridCache.RemoveAsync($"{_CacheKey}_{id}", cancellationToken);
+                await InvalidateRestaurantCache(restaurantId);
             }
             catch (Exception)
             {
@@ -132,9 +140,9 @@ namespace FoodFlow.Services.Impelement
             return Result.Success();
         }
 
-        public async Task<Result> ToggleOpenStatusAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Result> ToggleOpenStatusAsync(int restaurantId, CancellationToken cancellationToken = default)
         {
-            var existingRestaurant = await _dbContext.Restaurants.FindAsync(id, cancellationToken);
+            var existingRestaurant = await _dbContext.Restaurants.FindAsync(restaurantId, cancellationToken);
 
             if (existingRestaurant is null)
                 return Result.Failure(RestaurantErrors.NotFound);
@@ -144,7 +152,7 @@ namespace FoodFlow.Services.Impelement
             {
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 //await _cacheService.RemoveAsync($"{_CacheKey}_{id}", cancellationToken);      "distributed cache service"
-                await _hybridCache.RemoveAsync($"{_CacheKey}_{id}", cancellationToken);
+                await InvalidateRestaurantCache(restaurantId);
             }
             catch (Exception)
             {
@@ -153,9 +161,9 @@ namespace FoodFlow.Services.Impelement
             return Result.Success();
         }
 
-        public async Task<Result> ToggleActiveStatusAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Result> ToggleActiveStatusAsync(int restaurantId, CancellationToken cancellationToken = default)
         {
-            var existingRestaurant = await _dbContext.Restaurants.FindAsync(id, cancellationToken);
+            var existingRestaurant = await _dbContext.Restaurants.FindAsync(restaurantId, cancellationToken);
 
             if (existingRestaurant is null)
                 return Result.Failure(RestaurantErrors.NotFound);
@@ -164,8 +172,10 @@ namespace FoodFlow.Services.Impelement
             try
             {
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                //await _cacheService.RemoveAsync($"{_CacheKey}_{id}", cancellationToken);       "distributed cache service"
-                await _hybridCache.RemoveAsync($"{_CacheKey}_{id}", cancellationToken);
+                #region  distributed cache service
+                //await _cacheService.RemoveAsync($"{_CacheKey}_{id}", cancellationToken); 
+                #endregion
+                await InvalidateRestaurantCache(restaurantId);
             }
             catch (Exception)
             {
@@ -174,5 +184,13 @@ namespace FoodFlow.Services.Impelement
             return Result.Success();
         }
 
+
+        private async Task InvalidateRestaurantCache(int? restaurantId)
+        {
+            await _hybridCache.RemoveAsync($"{_CacheKeyPrefix}_All");
+            await _hybridCache.RemoveAsync($"{_CacheKeyPrefix}_Active");
+            if (restaurantId is null)
+                await _hybridCache.RemoveAsync($"{_CacheKeyPrefix}_{restaurantId}");
+        }
     }
 }

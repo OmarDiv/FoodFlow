@@ -1,6 +1,7 @@
 ﻿using FoodFlow.Contracts.Authentication;
 using FoodFlow.Services.Implementations;
 using FoodFlow.Settings;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -43,7 +44,11 @@ namespace FoodFlow
 
             services.AddExceptionHandler<GlobalExceptionHandler>();
             services.AddProblemDetails();
+            services.AddBackgroundJobsConfig(configuration);
+
             services.AddHttpContextAccessor();
+
+            services.Configure<HangfireSettings>(configuration.GetSection(nameof(HangfireSettings)));
             services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
 
 
@@ -133,6 +138,17 @@ namespace FoodFlow
             });
             return services;
         }
+        private static IServiceCollection AddBackgroundJobsConfig(this IServiceCollection services, IConfiguration configuration)
+        {
 
+            services.AddHangfire(config => config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
+
+            services.AddHangfireServer();
+            return services;
+        }
     }
 }
