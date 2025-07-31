@@ -1,5 +1,4 @@
-﻿using FoodFlow.Contracts.Authentication;
-using FoodFlow.Services.Implementations;
+﻿using FoodFlow.Authentication;
 using FoodFlow.Settings;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -35,11 +34,14 @@ namespace FoodFlow
                     .DbContextConfig(configuration);
 
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IEmailSender, EmailService>();
             services.AddScoped<IJwtProvider, JwtProvider>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IEmailConfirmationService, EmailConfirmationService>();
             services.AddScoped<IMenuItemService, MenuItemService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IRestaurantService, RestaurantService>();
+            services.AddHttpClient<IGeoapifyService, GeoapifyService>();
+
             //services.AddScoped<ICacheService, CacheService>(); //distributed cache
 
             services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -50,6 +52,7 @@ namespace FoodFlow
 
             services.Configure<HangfireSettings>(configuration.GetSection(nameof(HangfireSettings)));
             services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
+            services.Configure<GeoapifySettings>(configuration.GetSection(nameof(GeoapifySettings)));
 
 
             return services;

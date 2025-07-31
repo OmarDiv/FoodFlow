@@ -37,4 +37,8 @@
     <None Include="Persistence\EntitesConfigurations\UserConfiguration.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Contracts\Address\" />
+  </ItemGroup>
+
 </Project>

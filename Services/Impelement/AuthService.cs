@@ -1,6 +1,4 @@
-﻿using FoodFlow.Contracts.Authentication;
-using FoodFlow.Helpers;
-using Hangfire;
+﻿using FoodFlow.Authentication;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,15 +8,16 @@ namespace FoodFlow.Services.Impelement
     public class AuthService(UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IJwtProvider jwtProvider,
-        ILogger<AuthService> logger, IEmailSender emailSender,
-        IHttpContextAccessor httpContextAccessor) : IAuthService
+        ILogger<AuthService> logger,
+        IHttpContextAccessor httpContextAccessor,
+        IEmailConfirmationService emailConfirmationService) : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
         private readonly IJwtProvider _jwtProvider = jwtProvider;
         private readonly ILogger<AuthService> _logger = logger;
-        private readonly IEmailSender _emailSender = emailSender;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly IEmailConfirmationService _emailConfirmationService = emailConfirmationService;
         private readonly int _refreshTokenExpiryDays = 14;
 
         public async Task<Result<AuthResponse>> GetTokenAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -106,7 +105,7 @@ namespace FoodFlow.Services.Impelement
 
                 _logger.LogInformation("Confirmtion Code {code}", code);
 
-                await SendComfirmationEmailAsync(user, code);
+                await _emailConfirmationService.SendConfirmationEmailAsync(user, code);
 
                 return Result.Success();
 
@@ -116,49 +115,6 @@ namespace FoodFlow.Services.Impelement
 
             return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
         }
-        public async Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request)
-        {
-            if (await _userManager.FindByIdAsync(request.userId) is not { } user)
-                return Result.Failure(UserErrors.InvaildCode);
-
-            if (user.EmailConfirmed)
-                return Result.Failure(UserErrors.DuplicatedConfirmation);
-
-            var code = request.code;
-            try
-            {
-                code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-            }
-            catch (FormatException)
-            {
-                return Result.Failure(UserErrors.InvaildCode);
-
-            }
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            if (result.Succeeded)
-                return Result.Success();
-            var error = result.Errors.First();
-            return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
-        }
-
-        public async Task<Result> ResendConfirmEmailAsync(ResendConfirmtionEmailRequest request)
-        {
-            if (await _userManager.FindByEmailAsync(request.Email) is not { } user)
-                return Result.Success();
-
-            if (user.EmailConfirmed)
-                return Result.Failure(UserErrors.DuplicatedConfirmation);
-
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-            _logger.LogInformation("Confirmtion Code {code}", code);
-
-            await SendComfirmationEmailAsync(user, code);
-
-            return Result.Success();
-        }
-
         public async Task<Result> RevokeRefreshTokenAsync(string token, string refreshToken, CancellationToken cancellationToken = default)
         {
             var userId = _jwtProvider.ValidateToken(token);
@@ -180,6 +136,40 @@ namespace FoodFlow.Services.Impelement
                 return Result.Failure(UserErrors.FailedToUpdateUser);
 
             return Result.Success();
+        }
+
+        public async Task<Result> SendResetPasswordCodeAsync(string email)
+        {
+            if (await _userManager.FindByEmailAsync(email) is not { } user)
+                return Result.Success();
+            if (!user.EmailConfirmed)
+                return Result.Failure(UserErrors.EmailNotConfirmed);
+            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            _logger.LogInformation("Reset password code {Code}", code);
+            await _emailConfirmationService.SendResetPasswordConfirmationAsync(user, code);
+            return Result.Success();
+        }
+        public async Task<Result> ResetPasswordCodeAsync(ResetPasswordRequest request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+                return Result.Failure(UserErrors.InvaildCode);
+            IdentityResult result;
+            try
+            {
+                var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Code));
+                result = await _userManager.ResetPasswordAsync(user, code, request.NewPassword);
+            }
+            catch (Exception)
+            {
+                result = IdentityResult.Failed(_userManager.ErrorDescriber.InvalidToken());
+            }
+            if (result.Succeeded)
+                return Result.Success();
+            var error = result.Errors.First();
+            return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status401Unauthorized));
+
         }
         private static string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
@@ -209,19 +199,6 @@ namespace FoodFlow.Services.Impelement
             );
         }
         */
-        public async Task SendComfirmationEmailAsync(ApplicationUser user, string code)
-        {
-            var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
-
-            var emailBody = EmailBodyBuilder.GenerateEmailBody("EmailConfirmtion", new Dictionary<string, string>
-                        {
-                            { "{{UserName}}", user.FirstName },
-                            { "{{ConfirmLink}}", $"{origin}/auth/confirm-email?userId={user.Id}&code={code}" }
-                        });
-            BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "Food Flow Team", emailBody));
-
-            await Task.CompletedTask;
-        }
 
     }
 }

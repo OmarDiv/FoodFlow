@@ -1,6 +1,4 @@
-﻿using FoodFlow.Contracts.Authentication;
-
-namespace FoodFlow.Contracts.Athentication
+﻿namespace FoodFlow.Contracts.Athentication
 {
     public class RefreshTokenRequestValidator : AbstractValidator<RefreshTokenRequest>
     {

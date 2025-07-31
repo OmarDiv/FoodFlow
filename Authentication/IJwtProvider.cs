@@ -1,4 +1,4 @@
-﻿namespace FoodFlow.Services.Interface
+﻿namespace FoodFlow.Authentication
 {
     public interface IJwtProvider
     {

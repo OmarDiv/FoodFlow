@@ -1,4 +1,4 @@
-﻿namespace FoodFlow.Contracts.Authentication
+﻿namespace FoodFlow.Authentication
 {
     public class JwtOptions
     {

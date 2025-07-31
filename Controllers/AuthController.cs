@@ -1,12 +1,11 @@
-﻿using FoodFlow.Contracts.Authentication;
-
-namespace FoodFlow.Controllers
+﻿namespace FoodFlow.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController(IAuthService authService, IEmailConfirmationService emailConfirmationService) : ControllerBase
     {
         private readonly IAuthService _authService = authService;
+        private readonly IEmailConfirmationService _emailConfirmationService = emailConfirmationService;
 
         [HttpPost("")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
@@ -40,14 +39,32 @@ namespace FoodFlow.Controllers
         [HttpPost("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest request, CancellationToken cancellationToken = default)
         {
-            var result = await _authService.ConfirmEmailAsync(request);
+            var result = await _emailConfirmationService.ConfirmEmailAsync(request);
             return result.IsSuccess ? Ok() : result.ToProblem();
         }
         [HttpPost("resend-confirm-email")]
         public async Task<IActionResult> ResendConfirmEmail([FromBody] ResendConfirmtionEmailRequest request, CancellationToken cancellationToken = default)
         {
-            var result = await _authService.ResendConfirmEmailAsync(request);
+            var result = await _emailConfirmationService.ResendConfirmEmailAsync(request);
             return result.IsSuccess ? Ok() : result.ToProblem();
+        }
+        [HttpPost("forget-password")]
+        public async Task<IActionResult> ForgetPassword(ForgetPasswordRequest request)
+        {
+            var result = await _authService.SendResetPasswordCodeAsync(request.Email);
+
+            return result.IsSuccess
+                ? Ok("")
+                : result.ToProblem();
+        }
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ConfirmResetPassword(ResetPasswordRequest request)
+        {
+            var result = await _authService.ResetPasswordCodeAsync(request);
+
+            return result.IsSuccess
+                ? Ok("Password changed successfully.")
+                : result.ToProblem();
         }
 
 

@@ -1,10 +1,9 @@
-﻿using FoodFlow.Contracts.Authentication;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-namespace FoodFlow.Services.Impelement
+namespace FoodFlow.Authentication
 {
     public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     {
