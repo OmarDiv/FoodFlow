@@ -2,10 +2,10 @@
 {
     [Route("[controller]")]
     [ApiController]
-    public class AuthController(IAuthService authService, IEmailConfirmationService emailConfirmationService) : ControllerBase
+    public class AuthController(IAuthService authService, IEmailSenderService emailConfirmationService) : ControllerBase
     {
         private readonly IAuthService _authService = authService;
-        private readonly IEmailConfirmationService _emailConfirmationService = emailConfirmationService;
+        private readonly IEmailSenderService _emailConfirmationService = emailConfirmationService;
 
         [HttpPost("")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
@@ -39,13 +39,13 @@
         [HttpPost("confirm-email")]
         public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest request, CancellationToken cancellationToken = default)
         {
-            var result = await _emailConfirmationService.ConfirmEmailAsync(request);
+            var result = await _authService.ConfirmEmailAsync(request);
             return result.IsSuccess ? Ok() : result.ToProblem();
         }
         [HttpPost("resend-confirm-email")]
         public async Task<IActionResult> ResendConfirmEmail([FromBody] ResendConfirmtionEmailRequest request, CancellationToken cancellationToken = default)
         {
-            var result = await _emailConfirmationService.ResendConfirmEmailAsync(request);
+            var result = await _authService.ResendConfirmEmailAsync(request, cancellationToken);
             return result.IsSuccess ? Ok() : result.ToProblem();
         }
         [HttpPost("forget-password")]
@@ -60,7 +60,7 @@
         [HttpPost("reset-password")]
         public async Task<IActionResult> ConfirmResetPassword(ResetPasswordRequest request)
         {
-            var result = await _authService.ResetPasswordCodeAsync(request);
+            var result = await _authService.ConfirmResetPasswordAsync(request);
 
             return result.IsSuccess
                 ? Ok("Password changed successfully.")

@@ -4,6 +4,7 @@ using FoodFlow.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodFlow.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250802212807_UpdateRolesTable")]
+    partial class UpdateRolesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,44 +56,6 @@ namespace FoodFlow.Persistence.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "01986241-4662-71f4-95b6-31ac4820553f",
-                            ConcurrencyStamp = "0198680f-89d0-7335-8307-a348cee60de4",
-                            IsDefault = false,
-                            IsDeleted = false,
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = "01986241-4662-71f4-95b6-31b2d584c3ad",
-                            ConcurrencyStamp = "0198680f-89d0-7335-8307-a347826a8c88",
-                            IsDefault = true,
-                            IsDeleted = false,
-                            Name = "Customer",
-                            NormalizedName = "CUSTOMER"
-                        },
-                        new
-                        {
-                            Id = "01986241-4662-71f4-95b6-31ab855ae411",
-                            ConcurrencyStamp = "0198680f-89d0-7335-8307-a378defa9109",
-                            IsDefault = false,
-                            IsDeleted = false,
-                            Name = "RestaurantOwner",
-                            NormalizedName = "RESTAURANTOWNER"
-                        },
-                        new
-                        {
-                            Id = "01986241-4662-71f4-95b6-31bb2a547123",
-                            ConcurrencyStamp = "0198680f-89d0-7335-8307-a333865a77f1",
-                            IsDefault = false,
-                            IsDeleted = false,
-                            Name = "Delivery",
-                            NormalizedName = "DELIVERY"
-                        });
                 });
 
             modelBuilder.Entity("FoodFlow.Entities.ApplicationUser", b =>
@@ -116,9 +81,6 @@ namespace FoodFlow.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsDisabled")
-                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -446,323 +408,6 @@ namespace FoodFlow.Persistence.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ClaimType = "permissions",
-                            ClaimValue = "restaurants:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ClaimType = "permissions",
-                            ClaimValue = "restaurants:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ClaimType = "permissions",
-                            ClaimValue = "restaurants:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ClaimType = "permissions",
-                            ClaimValue = "restaurants:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            ClaimType = "permissions",
-                            ClaimValue = "restaurants:toggle-open",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            ClaimType = "permissions",
-                            ClaimValue = "restaurants:toggle-active",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            ClaimType = "permissions",
-                            ClaimValue = "categories:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            ClaimType = "permissions",
-                            ClaimValue = "categories:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            ClaimType = "permissions",
-                            ClaimValue = "categories:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            ClaimType = "permissions",
-                            ClaimValue = "categories:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            ClaimType = "permissions",
-                            ClaimValue = "categories:toggle-status",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            ClaimType = "permissions",
-                            ClaimValue = "menu-items:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            ClaimType = "permissions",
-                            ClaimValue = "menu-items:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            ClaimType = "permissions",
-                            ClaimValue = "menu-items:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            ClaimType = "permissions",
-                            ClaimValue = "menu-items:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 16,
-                            ClaimType = "permissions",
-                            ClaimValue = "menu-items:toggle-availability",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 17,
-                            ClaimType = "permissions",
-                            ClaimValue = "orders:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 18,
-                            ClaimType = "permissions",
-                            ClaimValue = "orders:cancel",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 19,
-                            ClaimType = "permissions",
-                            ClaimValue = "orders:view",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 20,
-                            ClaimType = "permissions",
-                            ClaimValue = "orders:view-customer",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 21,
-                            ClaimType = "permissions",
-                            ClaimValue = "orders:view-restaurant",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 22,
-                            ClaimType = "permissions",
-                            ClaimValue = "orders:update-status",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 23,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 24,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 25,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 26,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 27,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:assign-permissions",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 28,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 29,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 30,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 31,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 32,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:toggle-status",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 33,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:assign-restaurant",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 34,
-                            ClaimType = "permissions",
-                            ClaimValue = "delivery-zones:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 35,
-                            ClaimType = "permissions",
-                            ClaimValue = "delivery-zones:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 36,
-                            ClaimType = "permissions",
-                            ClaimValue = "delivery-zones:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 37,
-                            ClaimType = "permissions",
-                            ClaimValue = "delivery-zones:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 38,
-                            ClaimType = "permissions",
-                            ClaimValue = "Dlivery:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 39,
-                            ClaimType = "permissions",
-                            ClaimValue = "Dlivery:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 40,
-                            ClaimType = "permissions",
-                            ClaimValue = "Dlivery:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 41,
-                            ClaimType = "permissions",
-                            ClaimValue = "Dlivery:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 42,
-                            ClaimType = "permissions",
-                            ClaimValue = "users:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 43,
-                            ClaimType = "permissions",
-                            ClaimValue = "users:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 44,
-                            ClaimType = "permissions",
-                            ClaimValue = "users:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 45,
-                            ClaimType = "permissions",
-                            ClaimValue = "users:assign-roles",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>

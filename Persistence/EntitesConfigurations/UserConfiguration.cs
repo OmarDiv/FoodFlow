@@ -21,6 +21,5 @@ namespace FoodFlow.Persistence.EntitesConfigurations
                 .HasMaxLength(100);
 
         }
-
     }
 }

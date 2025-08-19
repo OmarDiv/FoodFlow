@@ -1,7 +1,9 @@
-﻿using FoodFlow.Authentication;
+﻿using FoodFlow.Abstractions.Filters;
+using FoodFlow.Authentication;
 using FoodFlow.Settings;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -34,9 +36,9 @@ namespace FoodFlow
                     .DbContextConfig(configuration);
 
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IJwtProvider, JwtProvider>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IEmailConfirmationService, EmailConfirmationService>();
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IEmailSenderService, EmailSenderService>();
             services.AddScoped<IMenuItemService, MenuItemService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IRestaurantService, RestaurantService>();
@@ -100,10 +102,12 @@ namespace FoodFlow
 
         private static IServiceCollection AddAuthConfig(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
-
+            services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>(); 
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>(); 
+            services.AddSingleton<IJwtProvider, JwtProvider>(); // تسجيل IJwtProvider كخدمة Singleton
             services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName)); //السطر ده هوه المسؤول عن عمليه ال DI 
 
 

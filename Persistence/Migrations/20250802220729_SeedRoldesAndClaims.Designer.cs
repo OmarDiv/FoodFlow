@@ -4,6 +4,7 @@ using FoodFlow.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodFlow.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250802220729_SeedRoldesAndClaims")]
+    partial class SeedRoldesAndClaims
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,9 +119,6 @@ namespace FoodFlow.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsDisabled")
-                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -600,167 +600,6 @@ namespace FoodFlow.Persistence.Migrations
                             Id = 22,
                             ClaimType = "permissions",
                             ClaimValue = "orders:update-status",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 23,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 24,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 25,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 26,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 27,
-                            ClaimType = "permissions",
-                            ClaimValue = "roles:assign-permissions",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 28,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 29,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 30,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 31,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 32,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:toggle-status",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 33,
-                            ClaimType = "permissions",
-                            ClaimValue = "promotions:assign-restaurant",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 34,
-                            ClaimType = "permissions",
-                            ClaimValue = "delivery-zones:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 35,
-                            ClaimType = "permissions",
-                            ClaimValue = "delivery-zones:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 36,
-                            ClaimType = "permissions",
-                            ClaimValue = "delivery-zones:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 37,
-                            ClaimType = "permissions",
-                            ClaimValue = "delivery-zones:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 38,
-                            ClaimType = "permissions",
-                            ClaimValue = "Dlivery:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 39,
-                            ClaimType = "permissions",
-                            ClaimValue = "Dlivery:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 40,
-                            ClaimType = "permissions",
-                            ClaimValue = "Dlivery:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 41,
-                            ClaimType = "permissions",
-                            ClaimValue = "Dlivery:delete",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 42,
-                            ClaimType = "permissions",
-                            ClaimValue = "users:read",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 43,
-                            ClaimType = "permissions",
-                            ClaimValue = "users:create",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 44,
-                            ClaimType = "permissions",
-                            ClaimValue = "users:update",
-                            RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
-                        },
-                        new
-                        {
-                            Id = 45,
-                            ClaimType = "permissions",
-                            ClaimValue = "users:assign-roles",
                             RoleId = "01986241-4662-71f4-95b6-31ac4820553f"
                         });
                 });

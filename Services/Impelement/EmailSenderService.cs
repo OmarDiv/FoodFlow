@@ -10,15 +10,15 @@ using System.Text;
 
 namespace FoodFlow.Services.Impelement
 {
-    public class EmailConfirmationService(
+    public class EmailSenderService(
         IHttpContextAccessor httpContextAccessor,
         UserManager<ApplicationUser> userManager,
         IOptions<MailSettings> options,
-        ILogger<EmailConfirmationService> logger) : IEmailConfirmationService
+        ILogger<EmailSenderService> logger) : IEmailSenderService
     {
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         private readonly UserManager<ApplicationUser> _userManager = userManager;
-        private readonly ILogger<EmailConfirmationService> _logger = logger;
+        private readonly ILogger<EmailSenderService> _logger = logger;
         private readonly MailSettings _mailSettings = options.Value;
 
         public async Task SendConfirmationEmailAsync(ApplicationUser user, string code)
@@ -62,48 +62,19 @@ namespace FoodFlow.Services.Impelement
 
             await Task.CompletedTask;
         }
-        public async Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request)
+        public async Task SendConfirmEmailCodeAndSetPasswordEmailAsync(ApplicationUser user, string code)
         {
-            if (await _userManager.FindByIdAsync(request.userId) is not { } user)
-                return Result.Failure(UserErrors.InvaildCode);
+            var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
 
-            if (user.EmailConfirmed)
-                return Result.Failure(UserErrors.DuplicatedConfirmation);
-
-            var code = request.code;
-            _logger.LogInformation("Confirming email with code {Code}", code);
-            try
+            var emailBody = EmailBodyBuilder.GenerateEmailBody("WelcomeAndSetPassword", new Dictionary<string, string>
             {
-                code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-            }
-            catch (FormatException)
-            {
-                return Result.Failure(UserErrors.InvaildCode);
+                { "{{UserName}}", user.FirstName },
+                { "{{SetPasswordLink}}", $"{origin}/auth/set-password?userId={user.Id}&code={code}" }
+            });
 
-            }
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            if (result.Succeeded)
-                return Result.Success();
-            var error = result.Errors.First();
-            return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
-        }
+            BackgroundJob.Enqueue(() => SendEmailAsync(user.Email!, "🔐Food Flow: Welcome! Set Your Password", emailBody));
 
-        public async Task<Result> ResendConfirmEmailAsync(ResendConfirmtionEmailRequest request)
-        {
-            if (await _userManager.FindByEmailAsync(request.Email) is not { } user)
-                return Result.Success();
-
-            if (user.EmailConfirmed)
-                return Result.Failure(UserErrors.DuplicatedConfirmation);
-
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-            _logger.LogInformation("Resending confirmation email to {Code}", code);
-
-            await SendConfirmationEmailAsync(user, code);
-
-            return Result.Success();
+            await Task.CompletedTask;
         }
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
@@ -130,6 +101,7 @@ namespace FoodFlow.Services.Impelement
             await smtp.SendAsync(message);
             smtp.Disconnect(true);
         }
+
     }
 }
 
